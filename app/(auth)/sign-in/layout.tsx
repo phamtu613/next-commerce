@@ -27,7 +27,7 @@ export default function SignIn() {
 
         {/* ✅ Chèn form đăng nhập ở đây */}
         <CardContent className='space-y-4'>
-          <CredentialsSignInForm />
+          <CredentialsSignInForm callbackUrl='' />
         </CardContent>
       </Card>
     </div>

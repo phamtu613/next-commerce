@@ -21,3 +21,18 @@ export function randomDecimal(min: number, max: number, precision = 2) {
     (Math.random() * (max - min) + min).toFixed(precision)
   )
 }
+
+export function formatError(error: any): string {
+  if (error.name === 'ZodError') {
+    const fieldErrors = error.errors.map((err: any) => err.message);
+    return fieldErrors.join('. ');
+  } else if (
+    error.name === 'PrismaClientKnownRequestError' &&
+    error.code === 'P2002'
+  ) {
+    const field = error.meta?.target ? error.meta.target[0] : 'Field';
+    return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+  } else {
+    return typeof error.message === 'string' ? error.message : JSON.stringify(error.message);
+  }
+}
