@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
+import CredentialsSignInForm from '@/components/auth/credentials-signin-form';
 import { redirect } from 'next/navigation'
-import CredentialsSignInForm from './credentials-signin-form'
 
 export default async function SignInPage(props: { searchParams: Promise<{ callbackUrl?: string }> }) {
 

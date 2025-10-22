@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import CredentialsSignInForm from './credentials-signin-form';
+import CredentialsSignInForm from '@/components/auth/credentials-signin-form';
 
 export default function SignIn() {
   return (
