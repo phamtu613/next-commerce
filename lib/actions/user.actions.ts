@@ -5,7 +5,11 @@ import { signInFormSchema, signUpFormSchema } from '../validator';
 import { hashSync } from "bcryptjs";
 import { prisma } from "../db/prisma";
 import { formatError } from '../utils';
-
+export interface SignUpResult {
+  success: boolean;
+  message: string;
+  redirectTo?: string;
+}
 // Sign in the user with credentials
 export async function signInWithCredentials(
   prevState: unknown,
@@ -38,8 +42,11 @@ export async function SignOutUser() {
     redirectTo: '/sign-in', // dùng redirectTo thay cho callbackUrl
   });
 }
-
-export async function signUp(prevState: unknown, formData: FormData) {
+// Server action
+export async function signUp(
+  prevState: SignUpResult,
+  formData: FormData
+): Promise<SignUpResult> {
   try {
     const user = signUpFormSchema.parse({
       name: formData.get('name') as string,
@@ -48,30 +55,22 @@ export async function signUp(prevState: unknown, formData: FormData) {
       confirmPassword: formData.get('confirmPassword') as string,
     });
 
-    const plainPassword = user.password;
-    user.password = hashSync(user.password, 10);
+    // Check duplicate email
+    const existingUser = await prisma.user.findUnique({ where: { email: user.email } });
+    if (existingUser) {
+      return { ...prevState, success: false, message: 'Email đã được đăng ký rồi' };
+    }
+
+    const hashedPassword = hashSync(user.password, 10);
 
     await prisma.user.create({
-      data: {
-        name: user.name,
-        email: user.email,
-        password: user.password,
-      },
+      data: { name: user.name, email: user.email, password: hashedPassword },
     });
 
-    await signIn('credentials', {
-      email: user.email,
-      password: plainPassword,
-      redirect: true,
-      callbackUrl: formData.get('callbackUrl') as string || '/',
-    });
-
-    return { success: true, message: 'User created successfully' };
+    // Trả về state với redirectTo
+    return { ...prevState, success: true, message: 'User created successfully', redirectTo: '/sign-in' };
   } catch (error: any) {
     console.error('SignUp Error:', error);
-    return {
-      success: false,
-      message: formatError(error),
-    };
+    return { ...prevState, success: false, message: formatError(error) };
   }
 }
