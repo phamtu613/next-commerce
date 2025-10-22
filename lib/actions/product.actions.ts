@@ -5,7 +5,6 @@ import { LATEST_PRODUCTS_LIMIT } from '../constants';
 
 const prisma = new PrismaClient();
 
-// Get the latest products
 export async function getLatestProducts() {
 
   const data = await prisma.product.findMany({
