@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-// Format number with decimal places
 export function formatNumberWithDecimal(num: number): string {
   const [int, decimal] = num.toString().split(".");
   return decimal ? `${int}.${decimal.padEnd(2, "0")}` : `${int}.00`;
 }
 
-// Make sure price is formatted with two decimal places
 const currency = z
   .string()
   .refine(
@@ -14,7 +12,28 @@ const currency = z
     "Price must have exactly two decimal places (e.g., 49.99)"
   );
 
-// Schema for inserting a product
+export const signInFormSchema = z.object({
+  email: z
+    .string()
+    .email("Invalid email address")
+    .min(3, "Email must be at least 3 characters"),
+  password: z.string().min(3, "Password must be at least 3 characters"),
+});
+
+export const signUpFormSchema = z
+  .object({
+    name: z.string().min(3, "Name must be at least 3 characters"),
+    email: z.string().min(3, "Email must be at least 3 characters"),
+    password: z.string().min(3, "Password must be at least 3 characters"),
+    confirmPassword: z
+      .string()
+      .min(3, "Confirm password must be at least 3 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
 export const insertProductSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),

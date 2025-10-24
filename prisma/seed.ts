@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   try {
     await prisma.product.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.product.createMany({ data: sampleData.products });
-    console.log("Database seeded successfully");
+    await prisma.user.createMany({ data: sampleData.users });
   } catch (error) {
-    console.error("Error seeding database:", error);
     throw error;
   }
 }
@@ -19,7 +19,6 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e);
     await prisma.$disconnect();
     process.exit(1);
   });

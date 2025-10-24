@@ -1,4 +1,5 @@
 import "@/assets/styles/globals.css";
+import AuthSessionProvider from "@/components/providers/session-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className}`} suppressHydrationWarning>
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>
   );
