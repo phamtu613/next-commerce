@@ -1,5 +1,5 @@
 export const LATEST_PRODUCTS_LIMIT =
-  Number(process.env.LATEST_PRODUCTS_LIMIT) || 4;
+  Number(process.env.LATEST_PRODUCTS_LIMIT) || 20;
 
 export const APP_NAME = "Tony Store";
 

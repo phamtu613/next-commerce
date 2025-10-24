@@ -9,20 +9,14 @@ export function convertToPlainObject<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
-export function formatError(error: any): { message: string; field?: string } {
+export function formatError(error: any): string {
   if (error.name === "ZodError") {
     if (error.errors && Array.isArray(error.errors)) {
       const firstError = error.errors[0];
-      return {
-        message: firstError.message || "Validation error",
-        field: firstError.path?.[0] || undefined,
-      };
+      return firstError.message || "Validation error";
     } else if (error.issues && Array.isArray(error.issues)) {
       const firstIssue = error.issues[0];
-      return {
-        message: firstIssue.message || "Validation error",
-        field: firstIssue.path?.[0] || undefined,
-      };
+      return firstIssue.message || "Validation error";
     }
   }
 
@@ -35,15 +29,22 @@ export function formatError(error: any): { message: string; field?: string } {
       field.charAt(0).toUpperCase() + field.slice(1)
     } already exists`;
 
-    return {
-      message: message,
-      field: field,
-    };
+    return message;
   }
 
   if (error.message && typeof error.message === "string") {
-    return { message: error.message };
+    return error.message;
   }
 
-  return { message: "Something went wrong. Please try again." };
+  return "Something went wrong. Please try again.";
 }
+
+export const round2 = (value: number | string) => {
+  if (typeof value === "number") {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+  } else if (typeof value === "string") {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  } else {
+    throw new Error("value is not a number nor a string");
+  }
+};
