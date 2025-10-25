@@ -14,3 +14,11 @@ export const signUpDefaultValues = {
   password: "admin@example.com",
   confirmPassword: "admin@example.com",
 };
+
+export const shippingAddressDefaultValues = {
+  fullName: "Tú Phạm",
+  streetAddress: "Nguyen Nhu Dai",
+  city: "Da Nang",
+  postalCode: "12345",
+  country: "VN",
+};
