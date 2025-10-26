@@ -4,6 +4,8 @@ import { getMyCart } from "@/lib/actions/cart.actions";
 import { getUserById } from "@/lib/actions/user.actions";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import GoToCartButton from "@/components/client/GoToCartButton";
+import GoToBackButton from "@/components/client/GoToBack";
 
 export const metadata: Metadata = {
   title: "Shipping Address",
@@ -85,18 +87,8 @@ const ShippingAddressPage = async () => {
             </div>
 
             <div className="flex space-x-4">
-              <button
-                onClick={() => window.history.back()}
-                className="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Go Back
-              </button>
-              <button
-                onClick={() => (window.location.href = "/cart")}
-                className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Back to Cart
-              </button>
+              <GoToBackButton/>
+              <GoToCartButton />
             </div>
           </div>
         </div>

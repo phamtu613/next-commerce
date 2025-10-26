@@ -68,33 +68,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user, trigger, session }: any) {
       if (user) {
+        token.id = user.id;
         token.role = user.role;
+        token.email = user.email;
+        token.name = token.name ?? user.name;
 
         if (user.name === "NO_NAME") {
-          token.name = user.email!.split("@")[0];
+          const newName = token.name = user.email!.split("@")[0];
 
           await prisma.user.update({
             where: { id: user.id },
-            data: { name: token.name },
+            data: { name: newName },
           });
+          token.name = newName;
         }
       }
 
-      if (session?.user.name && trigger === "update") {
+      if (trigger === "update" && session?.user?.name) {
         token.name = session.user.name;
       }
-
+      console.log("✅ JWT token at end:", token); // Debug check
       return token;
     },
     async session({ session, token, trigger }: any) {
-      session.user.id = token.id;
+      session.user.id = token.id ?? token.sub;
       session.user.name = token.name;
       session.user.role = token.role;
-
       if (trigger === "update" && token.name) {
         session.user.name = token.name;
       }
 
+      console.log("✅ Session:", session);
       return session;
     },
   },
