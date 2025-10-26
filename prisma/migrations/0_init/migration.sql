@@ -1,4 +1,24 @@
 -- CreateTable
+CREATE TABLE "Product" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "images" TEXT[],
+    "brand" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "stock" INTEGER NOT NULL,
+    "price" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "rating" DECIMAL(3,2) NOT NULL DEFAULT 0,
+    "numReviews" INTEGER NOT NULL DEFAULT 0,
+    "isFeatured" BOOLEAN NOT NULL DEFAULT false,
+    "banner" TEXT,
+    "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Cart" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "userId" UUID,
@@ -68,6 +88,42 @@ CREATE TABLE "VerificationToken" (
     CONSTRAINT "verificationToken_identifier_token_pk" PRIMARY KEY ("identifier","token")
 );
 
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
+    "shippingAddress" JSON NOT NULL,
+    "paymentMethod" TEXT NOT NULL,
+    "paymentResult" JSON,
+    "itemsPrice" DECIMAL(12,2) NOT NULL,
+    "shippingPrice" DECIMAL(12,2) NOT NULL,
+    "taxPrice" DECIMAL(12,2) NOT NULL,
+    "totalPrice" DECIMAL(12,2) NOT NULL,
+    "isPaid" BOOLEAN NOT NULL DEFAULT false,
+    "paidAt" TIMESTAMP(6),
+    "isDelivered" BOOLEAN NOT NULL DEFAULT false,
+    "deliveredAt" TIMESTAMP(6),
+    "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "orderId" UUID NOT NULL,
+    "productId" UUID NOT NULL,
+    "qty" INTEGER NOT NULL,
+    "price" DECIMAL(12,2) NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+
+    CONSTRAINT "orderItems_orderId_productId_pk" PRIMARY KEY ("orderId","productId")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "product_slug_idx" ON "Product"("slug");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_idx" ON "User"("email");
 
@@ -85,3 +141,13 @@ ALTER TABLE "Account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("u
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "order_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "orderItems_orderId_order_id_fk" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "orderItems_productId_product_id_fk" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
