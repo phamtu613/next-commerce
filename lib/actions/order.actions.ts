@@ -89,7 +89,6 @@ export async function getOrderById(orderId: string) {
   });
   return convertToPlainObject(data);
 }
-'use server';
 
 export async function createPayPalOrder(orderId: string) {
   console.log('🟢 SERVER: createPayPalOrder called with:', orderId);

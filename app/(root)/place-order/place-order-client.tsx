@@ -39,46 +39,47 @@ function PrintLoadingState() {
 
 export default function PlaceOrderClient({ user, cart }: any) {
   const handleCreatePayPalOrder = async () => {
-  try {
-    console.log('🔵 Step 1: Starting createPayPalOrder');
-    console.log('🔵 Order ID:', order.id);
-    
-    const res = await createPayPalOrder(order.id);
-    
-    console.log('🔵 Step 2: Server response:', res);
-    console.log('🔵 Step 3: res.success:', res.success);
-    console.log('🔵 Step 4: res.data:', res.data);
-    console.log('🔵 Step 5: typeof res.data:', typeof res.data);
-    
-    if (!res.success) {
-      console.error('❌ Server returned error:', res.message);
+    try {
+      console.log('🔵 Step 1: Starting createPayPalOrder');
+
+      // 1️⃣ Tạo order trên server
+      const orderResponse = await fetch('/api/order/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartId: cart.id, userId: user.id }),
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (!orderData?.success || !orderData?.orderId) {
+        console.error('❌ Failed to create order:', orderData);
+        throw new Error(orderData?.message || 'Order creation failed');
+      }
+
+      const orderId = orderData.orderId;
+      console.log('🔵 Step 2: Order created with ID:', orderId);
+
+      // 2️⃣ Gọi server action tạo PayPal order
+      const res = await createPayPalOrder(orderId);
+
+      if (!res.success || !res.data || typeof res.data !== 'string') {
+        console.error('❌ Invalid PayPal order ID:', res.data);
+        throw new Error(res.message || 'Invalid PayPal order ID received');
+      }
+
+      console.log('✅ Step 3: Returning PayPal order ID:', res.data);
+      return res.data; // Đây là STRING cho PayPal Buttons
+
+    } catch (error) {
+      console.error('❌ Error in handleCreatePayPalOrder:', error);
       toast({
-        description: res.message || 'Failed to create PayPal order',
+        description: error instanceof Error ? error.message : 'Failed to create PayPal order',
         variant: 'destructive',
       });
-      throw new Error(res.message);
+      throw error;
     }
+  };
 
-    if (!res.data || typeof res.data !== 'string') {
-      console.error('❌ Invalid order ID:', res.data);
-      throw new Error('Invalid PayPal order ID received');
-    }
-
-    console.log('✅ Step 6: Returning PayPal order ID:', res.data);
-    
-    // 👇 QUAN TRỌNG: Phải return một STRING
-    return res.data;
-    
-  } catch (error) {
-    console.error('❌ Error in handleCreatePayPalOrder:', error);
-    console.error('❌ Error stack:', error.stack);
-    toast({
-      description: error instanceof Error ? error.message : 'Failed to create order',
-      variant: 'destructive',
-    });
-    throw error;
-  }
-};
 
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
     const res = await approvePayPalOrder(cart.id, data);
