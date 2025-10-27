@@ -11,6 +11,7 @@ import { insertOrderSchema } from '../validator';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { paypal } from '../paypal';
 import { revalidatePath } from 'next/cache';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // Create an order
 export async function createOrder() {
@@ -90,124 +91,85 @@ export async function getOrderById(orderId: string) {
   return convertToPlainObject(data);
 }
 
-export async function createPayPalOrder(orderId: string) {
-  console.log('🟢 SERVER: createPayPalOrder called with:', orderId);
-  
-  try {
-    // 1. Tìm order
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-    });
+export async function createPayPalOrder(
+  orderId: string,
+  totalPrice: number | string | Decimal
+): Promise<string> {
+  if (!orderId) throw new Error('Missing orderId for PayPal order');
 
-    console.log('🟢 SERVER: Order found:', order ? 'YES' : 'NO');
+  let total: number;
 
-    if (!order) {
-      console.error('🔴 SERVER: Order not found');
-      return {
-        success: false,
-        message: 'Order not found in database',
-        data: null,
-      };
-    }
-
-    if (order.isPaid) {
-      console.error('🔴 SERVER: Order already paid');
-      return {
-        success: false,
-        message: 'Order is already paid',
-        data: null,
-      };
-    }
-
-    // 2. Lấy PayPal access token
-    console.log('🟢 SERVER: Getting PayPal access token...');
-    const accessToken = await getPayPalAccessToken();
-    console.log('🟢 SERVER: Access token obtained');
-
-    // 3. Tạo PayPal order
-    console.log('🟢 SERVER: Creating PayPal order...');
-    const response = await fetch(`${process.env.PAYPAL_API_URL}/v2/checkout/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [
-          {
-            reference_id: orderId,
-            amount: {
-              currency_code: 'USD',
-              value: order.totalPrice.toFixed(2),
-            },
-          },
-        ],
-      }),
-    });
-
-    const paypalOrder = await response.json();
-
-    console.log('🟢 SERVER: PayPal API response:', {
-      status: response.status,
-      ok: response.ok,
-      orderId: paypalOrder.id,
-    });
-
-    if (!response.ok) {
-      console.error('🔴 SERVER: PayPal API error:', paypalOrder);
-      return {
-        success: false,
-        message: paypalOrder.message || 'Failed to create PayPal order',
-        data: null,
-      };
-    }
-
-    console.log('✅ SERVER: PayPal order created successfully:', paypalOrder.id);
-
-    // 👇 QUAN TRỌNG: Phải return đúng format
-    return {
-      success: true,
-      message: 'PayPal order created',
-      data: paypalOrder.id, // 👈 Đây phải là STRING
-    };
-
-  } catch (error) {
-    console.error('🔴 SERVER: Exception in createPayPalOrder:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      data: null,
-    };
+  // 1️⃣ Nếu là Decimal, dùng toNumber()
+  if (typeof totalPrice === 'object' && 'toNumber' in totalPrice) {
+    total = (totalPrice as Decimal).toNumber();
+  } else {
+    // 2️⃣ Nếu là string hoặc number, convert sang number
+    total = Number(totalPrice);
   }
+
+  if (isNaN(total)) {
+    throw new Error('Invalid totalPrice for PayPal order');
+  }
+
+  const accessToken = await getPayPalAccessToken();
+
+  const res = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          reference_id: orderId,
+          amount: {
+            currency_code: 'USD',
+            value: total.toFixed(2), // PayPal yêu cầu string có 2 chữ số thập phân
+          },
+        },
+      ],
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.id) {
+    console.error('❌ PayPal create order error:', data);
+    throw new Error(data.message || 'Failed to create PayPal order');
+  }
+
+  return data.id;
 }
 
-async function getPayPalAccessToken(): Promise<string> {
-  try {
-    const auth = Buffer.from(
-      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
-    ).toString('base64');
+export async function getPayPalAccessToken(): Promise<string> {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_APP_SECRET;
+  
 
-    const response = await fetch(`${process.env.PAYPAL_API_URL}/v1/oauth2/token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'grant_type=client_credentials',
-    });
+  if (!clientId || !secret) throw new Error('PayPal credentials are missing');
 
-    const data = await response.json();
+  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64');
 
-    if (!response.ok) {
-      throw new Error(`Failed to get access token: ${data.error_description || data.error}`);
-    }
+  const res = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: 'grant_type=client_credentials',
+  });
 
-    return data.access_token;
-  } catch (error) {
-    console.error('🔴 Error getting PayPal access token:', error);
-    throw error;
+  const data = await res.json();
+
+  if (!res.ok) {
+    console.error('PayPal token error:', data);
+    throw new Error(`Failed to get access token: ${data.error_description || data.error}`);
   }
+
+  return data.access_token;
 }
 // ✅ Approve Paypal Order
 export async function approvePayPalOrder(
