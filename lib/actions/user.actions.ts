@@ -2,7 +2,7 @@
 
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/db/prisma";
-import { hashSync } from "bcrypt-ts-edge";
+import { hashSync } from "bcryptjs";
 import { formatError } from "../utils";
 import { paymentMethodSchema, signInFormSchema, signUpFormSchema } from "../validator";
 import z from "zod";
