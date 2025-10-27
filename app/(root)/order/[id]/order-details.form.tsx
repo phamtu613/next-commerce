@@ -26,37 +26,31 @@ const OrderDetailsTable = ({
   // 🟦 Tạo PayPal order - PHẢI RETURN STRING!
   const handleCreatePayPalOrder = async () => {
     try {
-      console.log('🔵 Creating PayPal order for:', order.id);
+      console.log('🔵 Creating PayPal order...');
+      console.log('🔵 Order ID:', order.id);
+      console.log('🔵 Total Price:', order.totalPrice);
       
-      const res = await createPayPalOrder(order.id);
+      // 👇 QUAN TRỌNG: Phải truyền CẢ orderId VÀ totalPrice
+      const paypalOrderId = await createPayPalOrder(
+        order.id,
+        order.totalPrice  // 👈 Thêm tham số này
+      );
       
-      console.log('🔵 Server response:', res);
+      console.log('✅ PayPal order created:', paypalOrderId);
       
-      if (!res.success) {
-        toast({
-          description: res.message || 'Failed to create PayPal order',
-          variant: 'destructive',
-        });
-        throw new Error(res.message);
-      }
-
-      // 👇 QUAN TRỌNG: Phải return một STRING là PayPal order ID
-      if (!res.data || typeof res.data !== 'string') {
-        console.error('❌ Invalid order ID:', res.data);
+      if (!paypalOrderId || typeof paypalOrderId !== 'string') {
         throw new Error('Invalid PayPal order ID received');
       }
 
-      console.log('✅ PayPal order ID:', res.data);
-      
-      return res.data; // 👈 PHẢI là string kiểu "8JX12345ABC67890D"
+      return paypalOrderId;
       
     } catch (error) {
-      console.error('❌ Error in handleCreatePayPalOrder:', error);
+      console.error('❌ Error creating PayPal order:', error);
       toast({
         description: error instanceof Error ? error.message : 'Failed to create order',
         variant: 'destructive',
       });
-      throw error; // PayPal SDK cần throw để hiển thị error
+      throw error;
     }
   };
 
@@ -104,7 +98,7 @@ const OrderDetailsTable = ({
           <p>Order ID: <span className="font-mono">{order.id}</span></p>
           <p>Payment Method: {paymentMethod}</p>
           <p>Status: {isPaid ? '✅ Paid' : '⏳ Unpaid'}</p>
-          <p>Total: ${order.totalPrice?.toFixed(2)}</p>
+          <p>Total: ${order.totalPrice}</p>
         </div>
 
         {/* PayPal Payment */}

@@ -95,24 +95,64 @@ export async function createPayPalOrder(
   orderId: string,
   totalPrice: number | string | Decimal
 ): Promise<string> {
+  console.log('🟢 ===== START createPayPalOrder =====');
+  console.log('🟢 orderId:', orderId);
+  console.log('🟢 totalPrice RAW:', totalPrice);
+  console.log('🟢 typeof totalPrice:', typeof totalPrice);
+  console.log('🟢 totalPrice constructor:', totalPrice?.constructor?.name);
+  
   if (!orderId) throw new Error('Missing orderId for PayPal order');
 
   let total: number;
 
-  // 1️⃣ Nếu là Decimal, dùng toNumber()
-  if (typeof totalPrice === 'object' && 'toNumber' in totalPrice) {
-    total = (totalPrice as Decimal).toNumber();
-  } else {
-    // 2️⃣ Nếu là string hoặc number, convert sang number
-    total = Number(totalPrice);
+  try {
+    // 1️⃣ Nếu là Decimal object
+    if (totalPrice && typeof totalPrice === 'object' && 'toNumber' in totalPrice) {
+      console.log('🟢 Case: Decimal object');
+      total = (totalPrice as Decimal).toNumber();
+      console.log('🟢 Decimal.toNumber():', total);
+    } 
+    // 2️⃣ Nếu là string
+    else if (typeof totalPrice === 'string') {
+      console.log('🟢 Case: String');
+      total = parseFloat(totalPrice);
+      console.log('🟢 parseFloat(string):', total);
+    }
+    // 3️⃣ Nếu là number
+    else if (typeof totalPrice === 'number') {
+      console.log('🟢 Case: Number');
+      total = totalPrice;
+      console.log('🟢 Direct number:', total);
+    }
+    // 4️⃣ Fallback
+    else {
+      console.log('🟢 Case: Fallback Number()');
+      total = Number(totalPrice);
+      console.log('🟢 Number():', total);
+    }
+
+    console.log('🟢 Final total:', total);
+    console.log('🟢 isNaN(total):', isNaN(total));
+
+  } catch (conversionError) {
+    console.error('❌ Conversion error:', conversionError);
+    console.error('❌ totalPrice that failed:', totalPrice);
+    throw new Error(`Failed to convert totalPrice: ${conversionError}`);
   }
 
-  if (isNaN(total)) {
-    throw new Error('Invalid totalPrice for PayPal order');
+  if (isNaN(total) || total <= 0) {
+    console.error('❌ Invalid total after conversion:', {
+      original: totalPrice,
+      converted: total,
+      isNaN: isNaN(total),
+    });
+    throw new Error(`Invalid totalPrice for PayPal order: ${totalPrice} → ${total}`);
   }
 
+  console.log('🟢 Getting PayPal access token...');
   const accessToken = await getPayPalAccessToken();
 
+  console.log('🟢 Creating PayPal order with USD', total.toFixed(2));
   const res = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
     method: 'POST',
     headers: {
@@ -126,7 +166,7 @@ export async function createPayPalOrder(
           reference_id: orderId,
           amount: {
             currency_code: 'USD',
-            value: total.toFixed(2), // PayPal yêu cầu string có 2 chữ số thập phân
+            value: total.toFixed(2),
           },
         },
       ],
@@ -136,10 +176,12 @@ export async function createPayPalOrder(
   const data = await res.json();
 
   if (!res.ok || !data.id) {
-    console.error('❌ PayPal create order error:', data);
+    console.error('❌ PayPal API error:', data);
     throw new Error(data.message || 'Failed to create PayPal order');
   }
 
+  console.log('✅ PayPal order created:', data.id);
+  console.log('🟢 ===== END createPayPalOrder =====');
   return data.id;
 }
 
