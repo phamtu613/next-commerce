@@ -6,9 +6,12 @@ import { getMyCart } from './cart.actions';
 import { getUserById } from './user.actions';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/db/prisma';
-import { CartItem } from '@/types';
+import { CartItem, PaymentResult } from '@/types';
 import { insertOrderSchema } from '../validator';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { paypal } from '../paypal';
+import { revalidatePath } from 'next/cache';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // Create an order
 export async function createOrder() {
@@ -86,4 +89,217 @@ export async function getOrderById(orderId: string) {
     },
   });
   return convertToPlainObject(data);
+}
+
+export async function createPayPalOrder(
+  orderId: string,
+  totalPrice: number | string | Decimal
+): Promise<string> {
+  console.log('🟢 ===== START createPayPalOrder =====');
+  console.log('🟢 orderId:', orderId);
+  console.log('🟢 totalPrice RAW:', totalPrice);
+  console.log('🟢 typeof totalPrice:', typeof totalPrice);
+  console.log('🟢 totalPrice constructor:', totalPrice?.constructor?.name);
+  
+  if (!orderId) throw new Error('Missing orderId for PayPal order');
+
+  let total: number;
+
+  try {
+    // 1️⃣ Nếu là Decimal object
+    if (totalPrice && typeof totalPrice === 'object' && 'toNumber' in totalPrice) {
+      console.log('🟢 Case: Decimal object');
+      total = (totalPrice as Decimal).toNumber();
+      console.log('🟢 Decimal.toNumber():', total);
+    } 
+    // 2️⃣ Nếu là string
+    else if (typeof totalPrice === 'string') {
+      console.log('🟢 Case: String');
+      total = parseFloat(totalPrice);
+      console.log('🟢 parseFloat(string):', total);
+    }
+    // 3️⃣ Nếu là number
+    else if (typeof totalPrice === 'number') {
+      console.log('🟢 Case: Number');
+      total = totalPrice;
+      console.log('🟢 Direct number:', total);
+    }
+    // 4️⃣ Fallback
+    else {
+      console.log('🟢 Case: Fallback Number()');
+      total = Number(totalPrice);
+      console.log('🟢 Number():', total);
+    }
+
+    console.log('🟢 Final total:', total);
+    console.log('🟢 isNaN(total):', isNaN(total));
+
+  } catch (conversionError) {
+    console.error('❌ Conversion error:', conversionError);
+    console.error('❌ totalPrice that failed:', totalPrice);
+    throw new Error(`Failed to convert totalPrice: ${conversionError}`);
+  }
+
+  if (isNaN(total) || total <= 0) {
+    console.error('❌ Invalid total after conversion:', {
+      original: totalPrice,
+      converted: total,
+      isNaN: isNaN(total),
+    });
+    throw new Error(`Invalid totalPrice for PayPal order: ${totalPrice} → ${total}`);
+  }
+
+  console.log('🟢 Getting PayPal access token...');
+  const accessToken = await getPayPalAccessToken();
+
+  console.log('🟢 Creating PayPal order with USD', total.toFixed(2));
+  const res = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          reference_id: orderId,
+          amount: {
+            currency_code: 'USD',
+            value: total.toFixed(2),
+          },
+        },
+      ],
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.id) {
+    console.error('❌ PayPal API error:', data);
+    throw new Error(data.message || 'Failed to create PayPal order');
+  }
+
+  console.log('✅ PayPal order created:', data.id);
+  console.log('🟢 ===== END createPayPalOrder =====');
+  return data.id;
+}
+
+export async function getPayPalAccessToken(): Promise<string> {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_APP_SECRET;
+  
+
+  if (!clientId || !secret) throw new Error('PayPal credentials are missing');
+
+  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64');
+
+  const res = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: 'grant_type=client_credentials',
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    console.error('PayPal token error:', data);
+    throw new Error(`Failed to get access token: ${data.error_description || data.error}`);
+  }
+
+  return data.access_token;
+}
+// ✅ Approve Paypal Order
+export async function approvePayPalOrder(
+  orderId: string,
+  data: { orderID: string }
+) {
+  try {
+    // 1️⃣ Tìm đơn hàng trong database
+    const order = await prisma.order.findFirst({
+      where: { id: orderId },
+    });
+    if (!order) throw new Error('Order not found');
+
+    // 2️⃣ Capture thanh toán từ PayPal
+    const captureData = await paypal.capturePayment(data.orderID);
+    if (!captureData || captureData.status !== 'COMPLETED') {
+      throw new Error('Error in PayPal payment');
+    }
+
+    // 3️⃣ Cập nhật đơn hàng thành "đã thanh toán"
+    await updateOrderToPaid({
+      orderId,
+      paymentResult: {
+        id: captureData.id,
+        status: captureData.status,
+        email_address: captureData.payer?.email_address,
+        pricePaid:
+          captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value,
+      },
+    });
+
+    // 4️⃣ Revalidate cache trang order detail
+    revalidatePath(`/order/${orderId}`);
+
+    return {
+      success: true,
+      message: 'Your order has been successfully paid by PayPal',
+    };
+  } catch (err) {
+    return { success: false, message: formatError(err) };
+  }
+}
+
+// ✅ Update Order to Paid
+async function updateOrderToPaid({
+  orderId,
+  paymentResult,
+}: {
+  orderId: string;
+  paymentResult?: PaymentResult;
+}) {
+  // 1️⃣ Tìm đơn hàng
+  const order = await prisma.order.findFirst({
+    where: { id: orderId },
+    include: { orderItems: true },
+  });
+
+  if (!order) throw new Error('Order not found');
+  if (order.isPaid) throw new Error('Order is already paid');
+
+  // 2️⃣ Transaction cập nhật đơn hàng + tồn kho
+  await prisma.$transaction(async (tx) => {
+    for (const item of order.orderItems) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: item.qty } },
+      });
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: {
+        isPaid: true,
+        paidAt: new Date(),
+        paymentResult,
+      },
+    });
+  });
+
+  // 3️⃣ Lấy lại order sau update
+  const updatedOrder = await prisma.order.findFirst({
+    where: { id: orderId },
+    include: {
+      orderItems: true,
+      user: { select: { name: true, email: true } },
+    },
+  });
+
+  if (!updatedOrder) throw new Error('Order not found');
+  return updatedOrder;
 }

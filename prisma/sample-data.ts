@@ -14,6 +14,13 @@ const sampleData = {
       password: hashSync("123456", 10),
       role: "user",
     },
+    {
+      name: "Thanh Tuấn",
+      email: "lynguyenthanhtuan@gmail.com",
+      password: hashSync("Thanhtuan@123", 10),
+      role: "user",
+      address:"228 Ton Thất Thuyết, Phường 04, Quận 04, TP.HCM"
+    }
   ],
 
   products: [

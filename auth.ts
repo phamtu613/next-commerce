@@ -1,5 +1,5 @@
 import { prisma } from "@/db/prisma";
-import { compareSync } from "bcrypt-ts-edge";
+import { compareSync } from "bcryptjs";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextResponse } from "next/server";

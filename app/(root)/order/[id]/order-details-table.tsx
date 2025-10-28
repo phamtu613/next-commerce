@@ -17,7 +17,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-const OrderDetailsTable = ({ order }: { order: Order }) => {
+const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClientId:string }) => {
   const { toast } = useToast();
 
   const {
