@@ -87,7 +87,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update" && session?.user?.name) {
         token.name = session.user.name;
       }
-      console.log("✅ JWT token at end:", token); // Debug check
       return token;
     },
     async session({ session, token, trigger }: any) {
@@ -98,7 +97,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.name = token.name;
       }
 
-      console.log("✅ Session:", session);
       return session;
     },
   },

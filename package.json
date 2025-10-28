@@ -7,7 +7,15 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:pull": "prisma db pull",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:fix-drift": "bash prisma/fix-prisma-drift.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -15,9 +23,10 @@
     "@prisma/adapter-neon": "^6.18.0",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-radio-group": "^1.3.8",
     "@radix-ui/react-slot": "^1.2.3",
-    "bcrypt-ts-edge": "^3.0.1",
     "@radix-ui/react-toast": "^1.2.15",
+    "bcrypt-ts-edge": "^3.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.546.0",
