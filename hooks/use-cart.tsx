@@ -1,11 +1,11 @@
 "use client";
 
-import { toast, useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { addItemToCart, removeItemFromCart } from "@/lib/actions/cart.actions";
+import { ROUTES } from "@/lib/constants/routes";
 import { CartItem } from "@/types";
 import { useRouter } from "next/navigation";
-import router from "next/router";
-import { startTransition, useTransition } from "react";
+import { useTransition } from "react";
 
 export const useCart = () => {
   const router = useRouter();
@@ -29,7 +29,7 @@ export const useCart = () => {
         action: (
           <button
             className="bg-primary text-white hover:bg-gray-800 px-3 py-1 rounded text-sm"
-            onClick={() => router.push("/cart")}
+            onClick={() => router.push(ROUTES.CART)}
           >
             Go to cart
           </button>

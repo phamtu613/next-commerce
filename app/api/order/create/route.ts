@@ -1,24 +1,26 @@
-// app/api/order/create/route.ts
-import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { prisma } from '@/db/prisma';
+import { auth } from "@/auth";
+import { prisma } from "@/db/prisma";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  if (!session)
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
+    );
 
   try {
     const { cartId, userId } = await req.json();
 
-    // Lấy cart từ DB
     const cart = await prisma.cart.findUnique({ where: { id: cartId } });
-    if (!cart) return NextResponse.json({ success: false, message: 'Cart not found' });
+    if (!cart)
+      return NextResponse.json({ success: false, message: "Cart not found" });
 
-    // Tạo order trong DB
     const order = await prisma.order.create({
       data: {
         userId,
-        paymentMethod: 'PayPal', // hoặc lấy từ user
+        paymentMethod: "PayPal", // hoặc lấy từ user
         shippingAddress: {}, // nếu có
         itemsPrice: cart.itemsPrice,
         shippingPrice: cart.shippingPrice,

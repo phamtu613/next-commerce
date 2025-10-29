@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { addItemToCart, removeItemFromCart } from "@/lib/actions/cart.actions";
+import { ROUTES } from "@/lib/constants/routes";
 import { formatCurrency } from "@/lib/utils";
 import { Cart } from "@/types";
 import { ArrowRight, Loader, Minus, Plus } from "lucide-react";
@@ -238,7 +239,7 @@ const CartTable = ({ cart }: CartTableProps) => {
 
                 <Button
                   onClick={() =>
-                    startTransition(() => router.push("/shipping-address"))
+                    startTransition(() => router.push(ROUTES.SHIPPING_ADDRESS))
                   }
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors"
                   disabled={isPending}
@@ -253,7 +254,7 @@ const CartTable = ({ cart }: CartTableProps) => {
 
                 <div className="mt-4 text-center">
                   <Link
-                    href="/"
+                    href={ROUTES.HOME}
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Continue Shopping

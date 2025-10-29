@@ -21,16 +21,13 @@ const ProductDetailsPage = async (props: {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Product Images */}
         <div className="space-y-4">
           <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
             <ProductImages images={product.images!} />
           </div>
         </div>
 
-        {/* Product Details */}
         <div className="space-y-8">
-          {/* Breadcrumb */}
           <nav className="flex items-center space-x-2 text-sm text-gray-500">
             <a href="/" className="hover:text-gray-700">
               Home
@@ -43,7 +40,6 @@ const ProductDetailsPage = async (props: {
             <span className="text-gray-900">{product.name}</span>
           </nav>
 
-          {/* Product Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Badge variant="outline" className="text-xs">
@@ -58,7 +54,6 @@ const ProductDetailsPage = async (props: {
               {product.name}
             </h1>
 
-            {/* Rating */}
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
@@ -81,7 +76,6 @@ const ProductDetailsPage = async (props: {
               </span>
             </div>
 
-            {/* Price */}
             <div className="flex items-center space-x-4">
               <ProductPrice
                 value={Number(product.price)}
@@ -98,7 +92,6 @@ const ProductDetailsPage = async (props: {
             </div>
           </div>
 
-          {/* Description */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-gray-900">Description</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -106,7 +99,6 @@ const ProductDetailsPage = async (props: {
             </p>
           </div>
 
-          {/* Product Features */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-gray-900">
               Product Details
@@ -131,7 +123,6 @@ const ProductDetailsPage = async (props: {
             </div>
           </div>
 
-          {/* Add to Cart */}
           {product.stock > 0 ? (
             <div className="pt-6 border-t">
               <AddToCart

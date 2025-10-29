@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
+import GoToBackButton from "@/components/client/GoToBack";
+import GoToCartButton from "@/components/client/GoToCartButton";
 import CheckoutSteps from "@/components/shared/checkout-steps";
 import { getMyCart } from "@/lib/actions/cart.actions";
 import { getUserById } from "@/lib/actions/user.actions";
+import { ROUTES, createSignInUrl } from "@/lib/constants/routes";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import GoToCartButton from "@/components/client/GoToCartButton";
-import GoToBackButton from "@/components/client/GoToBack";
 
 export const metadata: Metadata = {
   title: "Shipping Address",
@@ -14,14 +15,14 @@ export const metadata: Metadata = {
 const ShippingAddressPage = async () => {
   const cart = await getMyCart();
 
-  if (!cart || cart.items.length === 0) redirect("/cart");
+  if (!cart || cart.items.length === 0) redirect(ROUTES.CART);
 
   const session = await auth();
 
   const userId = session?.user?.id;
 
   if (!userId) {
-    throw new Error("User ID not found");
+    redirect(createSignInUrl(ROUTES.SHIPPING_ADDRESS));
   }
 
   const user = await getUserById(userId);
@@ -87,7 +88,7 @@ const ShippingAddressPage = async () => {
             </div>
 
             <div className="flex space-x-4">
-              <GoToBackButton/>
+              <GoToBackButton />
               <GoToCartButton />
             </div>
           </div>

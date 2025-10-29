@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,15 +9,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
-import { Order } from '@/types';
-import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react';
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
+import { Order } from "@/types";
+import Image from "next/image";
+import Link from "next/link";
 
-const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClientId:string }) => {
+const OrderDetailsTable = ({
+  order,
+  paypalClientId,
+}: {
+  order: Order;
+  paypalClientId: string;
+}) => {
   const { toast } = useToast();
 
   const {
@@ -37,13 +42,12 @@ const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClient
   return (
     <>
       <h1 className="py-6 text-3xl font-semibold text-gray-800">
-        Order <span className="text-muted-foreground">#{formatId(order.id)}</span>
+        Order{" "}
+        <span className="text-muted-foreground">#{formatId(order.id)}</span>
       </h1>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* LEFT SIDE */}
         <div className="md:col-span-2 space-y-6">
-          {/* Payment Method */}
           <Card className="shadow-sm border-gray-200">
             <CardContent className="p-5 space-y-3">
               <h2 className="text-xl font-semibold text-gray-800">
@@ -60,7 +64,6 @@ const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClient
             </CardContent>
           </Card>
 
-          {/* Shipping Address */}
           <Card className="shadow-sm border-gray-200">
             <CardContent className="p-5 space-y-3">
               <h2 className="text-xl font-semibold text-gray-800">
@@ -68,7 +71,7 @@ const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClient
               </h2>
               <p className="font-medium">{shippingAddress.fullName}</p>
               <p className="text-gray-700">
-                {shippingAddress.streetAddress}, {shippingAddress.city},{' '}
+                {shippingAddress.streetAddress}, {shippingAddress.city},{" "}
                 {shippingAddress.postalCode}, {shippingAddress.country}
               </p>
               {isDelivered ? (
@@ -81,7 +84,6 @@ const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClient
             </CardContent>
           </Card>
 
-          {/* Order Items */}
           <Card className="shadow-sm border-gray-200">
             <CardContent className="p-5">
               <h2 className="text-xl font-semibold text-gray-800 pb-4">
@@ -125,7 +127,6 @@ const OrderDetailsTable = ({ order,paypalClientId }: { order: Order,paypalClient
           </Card>
         </div>
 
-        {/* RIGHT SIDE - Summary */}
         <div>
           <Card className="shadow-md border-gray-200 sticky top-4">
             <CardContent className="p-5 space-y-4">

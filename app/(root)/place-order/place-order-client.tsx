@@ -1,16 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { PayPalButtons, PayPalScriptProvider, usePayPalScriptReducer } from '@paypal/react-paypal-js';
-import { createOrder, createPayPalOrder, approvePayPalOrder } from '@/lib/actions/order.actions';
-import { toast } from '@/hooks/use-toast';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import Image from 'next/image';
-import Link from 'next/link';
-import { formatCurrency } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "@/hooks/use-toast";
+import {
+  approvePayPalOrder,
+  createOrder,
+  createPayPalOrder,
+} from "@/lib/actions/order.actions";
+import { ROUTES } from "@/lib/constants/routes";
+import { formatCurrency } from "@/lib/utils";
+import {
+  PayPalButtons,
+  PayPalScriptProvider,
+  usePayPalScriptReducer,
+} from "@paypal/react-paypal-js";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 function PrintLoadingState() {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
@@ -24,29 +40,38 @@ export default function PlaceOrderClient({ user, cart }: any) {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  // 🔴 Kiểm tra điều kiện trước khi cho phép đặt hàng
   const canPlaceOrder = () => {
     if (!user.address) {
-      return { valid: false, message: 'Please add a shipping address', redirectTo: '/shipping-address' };
+      return {
+        valid: false,
+        message: "Please add a shipping address",
+        redirectTo: "/shipping-address",
+      };
     }
     if (!user.paymentMethod) {
-      return { valid: false, message: 'Please select a payment method', redirectTo: '/payment-method' };
+      return {
+        valid: false,
+        message: "Please select a payment method",
+        redirectTo: "/payment-method",
+      };
     }
     if (!cart || cart.items.length === 0) {
-      return { valid: false, message: 'Your cart is empty', redirectTo: '/cart' };
+      return {
+        valid: false,
+        message: "Your cart is empty",
+        redirectTo: "/cart",
+      };
     }
     return { valid: true };
   };
 
-  // 🟦 Tạo order trong DB trước (cho Cash on Delivery)
   const handlePlaceOrder = async () => {
     try {
-      // Kiểm tra điều kiện
       const check = canPlaceOrder();
       if (!check.valid) {
         toast({
           description: check.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         if (check.redirectTo) {
           router.push(check.redirectTo);
@@ -55,15 +80,15 @@ export default function PlaceOrderClient({ user, cart }: any) {
       }
 
       setIsCreatingOrder(true);
-      
+
       const result = await createOrder();
-      
+
       if (!result.success) {
         toast({
           description: result.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
-        
+
         if (result.redirectTo) {
           router.push(result.redirectTo);
         }
@@ -72,121 +97,109 @@ export default function PlaceOrderClient({ user, cart }: any) {
 
       toast({
         description: result.message,
-        variant: 'default',
+        variant: "default",
       });
 
-      // Redirect đến trang order detail
       if (result.redirectTo) {
         router.push(result.redirectTo);
       }
     } catch (error) {
       toast({
-        description: error instanceof Error ? error.message : 'Failed to create order',
-        variant: 'destructive',
+        description:
+          error instanceof Error ? error.message : "Failed to create order",
+        variant: "destructive",
       });
     } finally {
       setIsCreatingOrder(false);
     }
   };
 
-  // 🟩 Tạo PayPal order
   const handleCreatePayPalOrder = async () => {
     try {
-      console.log('🔵 Step 1: Validating order conditions...');
-      
-      // 1️⃣ Kiểm tra điều kiện trước
+      console.log("🔵 Step 1: Validating order conditions...");
+
       const check = canPlaceOrder();
       if (!check.valid) {
         toast({
           description: check.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         throw new Error(check.message);
       }
 
-      console.log('🔵 Step 2: Creating order in database...');
-      
-      // 2️⃣ Tạo order trong DB
+      console.log("🔵 Step 2: Creating order in database...");
+
       const orderResult = await createOrder();
-      
-      console.log('🔵 Order result:', orderResult);
-      
+
+      console.log("🔵 Order result:", orderResult);
+
       if (!orderResult.success) {
         toast({
           description: orderResult.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         throw new Error(orderResult.message);
       }
 
-      // 3️⃣ Lấy orderId từ redirectTo
-      const createdOrderId = orderResult.redirectTo?.split('/').pop();
-      
+      const createdOrderId = orderResult.redirectTo?.split("/").pop();
+
       if (!createdOrderId) {
-        throw new Error('Failed to get order ID');
+        throw new Error("Failed to get order ID");
       }
 
-      console.log('🔵 Step 3: Order created with ID:', createdOrderId);
-      console.log('🔵 Step 4: Creating PayPal order...');
-      console.log('🔵 Cart total price:', cart.totalPrice);
+      console.log("🔵 Step 3: Order created with ID:", createdOrderId);
+      console.log("🔵 Step 4: Creating PayPal order...");
+      console.log("🔵 Cart total price:", cart.totalPrice);
 
-      // 4️⃣ Tạo PayPal order
       const paypalOrderId = await createPayPalOrder(
         createdOrderId,
         cart.totalPrice
       );
 
-      console.log('✅ PayPal order created:', paypalOrderId);
-      
-      // Lưu orderId để dùng trong onApprove
+      console.log("✅ PayPal order created:", paypalOrderId);
+
       setOrderId(createdOrderId);
 
       return paypalOrderId;
-      
     } catch (error) {
-      console.error('❌ Error in handleCreatePayPalOrder:', error);
-      
-      // Không cần toast ở đây nếu đã toast ở trên
+      console.error("❌ Error in handleCreatePayPalOrder:", error);
+
       throw error;
     }
   };
 
-  // 🟨 Approve PayPal payment
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
     try {
       if (!orderId) {
-        throw new Error('Order ID not found');
+        throw new Error("Order ID not found");
       }
 
-      console.log('🟡 Approving payment for order:', orderId);
-      
+      console.log("🟡 Approving payment for order:", orderId);
+
       const res = await approvePayPalOrder(orderId, data);
-      
+
       toast({
         description: res.message,
-        variant: res.success ? 'default' : 'destructive',
+        variant: res.success ? "default" : "destructive",
       });
 
       if (res.success) {
-        // Redirect đến order detail page
         setTimeout(() => {
           router.push(`/order/${orderId}`);
         }, 1500);
       }
     } catch (error) {
-      console.error('❌ Approval error:', error);
+      console.error("❌ Approval error:", error);
       toast({
-        description: error instanceof Error ? error.message : 'Payment failed',
-        variant: 'destructive',
+        description: error instanceof Error ? error.message : "Payment failed",
+        variant: "destructive",
       });
     }
   };
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
-      {/* LEFT SECTION */}
       <div className="md:col-span-2 space-y-6">
-        {/* Shipping Address */}
         <Card>
           <CardHeader className="bg-gray-50 border-b">
             <CardTitle>Shipping Address</CardTitle>
@@ -206,7 +219,7 @@ export default function PlaceOrderClient({ user, cart }: any) {
                 <p className="text-sm text-red-600 mb-3">
                   ⚠️ No shipping address. Please add one before placing order.
                 </p>
-                <Link href="/shipping-address">
+                <Link href={ROUTES.SHIPPING_ADDRESS}>
                   <Button variant="default" size="sm">
                     Add Shipping Address
                   </Button>
@@ -223,7 +236,6 @@ export default function PlaceOrderClient({ user, cart }: any) {
           </CardContent>
         </Card>
 
-        {/* Payment Method */}
         <Card>
           <CardHeader className="bg-gray-50 border-b">
             <CardTitle>Payment Method</CardTitle>
@@ -236,19 +248,18 @@ export default function PlaceOrderClient({ user, cart }: any) {
                 ⚠️ No payment method selected. Please select one.
               </p>
             )}
-            <Link href="/payment-method">
-              <Button 
-                variant={user.paymentMethod ? "outline" : "default"} 
-                size="sm" 
+            <Link href={ROUTES.PAYMENT_METHOD}>
+              <Button
+                variant={user.paymentMethod ? "outline" : "default"}
+                size="sm"
                 className="mt-3"
               >
-                {user.paymentMethod ? 'Edit' : 'Select Payment Method'}
+                {user.paymentMethod ? "Edit" : "Select Payment Method"}
               </Button>
             </Link>
           </CardContent>
         </Card>
 
-        {/* Order Items */}
         <Card>
           <CardHeader className="bg-gray-50 border-b">
             <CardTitle>Order Items</CardTitle>
@@ -282,7 +293,9 @@ export default function PlaceOrderClient({ user, cart }: any) {
                             <span>{item.name}</span>
                           </Link>
                         </TableCell>
-                        <TableCell className="text-center">{item.qty}</TableCell>
+                        <TableCell className="text-center">
+                          {item.qty}
+                        </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(item.price)}
                         </TableCell>
@@ -291,7 +304,7 @@ export default function PlaceOrderClient({ user, cart }: any) {
                   </TableBody>
                 </Table>
                 <div className="mt-4 flex justify-end">
-                  <Link href="/cart">
+                  <Link href={ROUTES.CART}>
                     <Button variant="outline" size="sm">
                       Edit Cart
                     </Button>
@@ -300,10 +313,8 @@ export default function PlaceOrderClient({ user, cart }: any) {
               </>
             ) : (
               <div>
-                <p className="text-sm text-red-600 mb-3">
-                  Your cart is empty
-                </p>
-                <Link href="/">
+                <p className="text-sm text-red-600 mb-3">Your cart is empty</p>
+                <Link href={ROUTES.HOME}>
                   <Button variant="default" size="sm">
                     Continue Shopping
                   </Button>
@@ -314,7 +325,6 @@ export default function PlaceOrderClient({ user, cart }: any) {
         </Card>
       </div>
 
-      {/* RIGHT SECTION */}
       <div>
         <Card className="border border-gray-200 shadow-md sticky top-4">
           <CardHeader className="bg-gray-50 border-b">
@@ -341,59 +351,55 @@ export default function PlaceOrderClient({ user, cart }: any) {
               <span>{formatCurrency(cart.totalPrice)}</span>
             </div>
 
-            {/* Hiển thị warning nếu thiếu thông tin */}
             {!canPlaceOrder().valid && (
               <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
                 ⚠️ {canPlaceOrder().message}
               </div>
             )}
 
-            {/* PayPal Payment */}
-            {user.paymentMethod === 'PayPal' && canPlaceOrder().valid ? (
+            {user.paymentMethod === "PayPal" && canPlaceOrder().valid ? (
               <div className="mt-4">
                 <PayPalScriptProvider
                   options={{
-                    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'sb',
-                    currency: 'USD',
+                    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb",
+                    currency: "USD",
                   }}
                 >
                   <PrintLoadingState />
                   <PayPalButtons
                     style={{
-                      layout: 'vertical',
-                      color: 'gold',
-                      shape: 'rect',
-                      label: 'paypal',
+                      layout: "vertical",
+                      color: "gold",
+                      shape: "rect",
+                      label: "paypal",
                     }}
                     createOrder={handleCreatePayPalOrder}
                     onApprove={handleApprovePayPalOrder}
                     onError={(err) => {
-                      console.error('PayPal error:', err);
+                      console.error("PayPal error:", err);
                       toast({
-                        description: 'PayPal error occurred',
-                        variant: 'destructive',
+                        description: "PayPal error occurred",
+                        variant: "destructive",
                       });
                     }}
                     onCancel={() => {
                       toast({
-                        description: 'Payment cancelled',
+                        description: "Payment cancelled",
                       });
                     }}
                   />
                 </PayPalScriptProvider>
               </div>
-            ) : user.paymentMethod !== 'PayPal' && canPlaceOrder().valid ? (
-              /* Cash on Delivery hoặc payment method khác */
-              <Button 
+            ) : user.paymentMethod !== "PayPal" && canPlaceOrder().valid ? (
+              <Button
                 className="w-full mt-4 text-base font-medium py-6"
                 onClick={handlePlaceOrder}
                 disabled={isCreatingOrder}
               >
-                {isCreatingOrder ? 'Creating Order...' : 'Place Order'}
+                {isCreatingOrder ? "Creating Order..." : "Place Order"}
               </Button>
             ) : (
-              /* Disable button nếu thiếu thông tin */
-              <Button 
+              <Button
                 className="w-full mt-4 text-base font-medium py-6"
                 disabled
               >

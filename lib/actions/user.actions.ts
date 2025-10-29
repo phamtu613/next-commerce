@@ -3,10 +3,9 @@
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { hashSync } from "bcryptjs";
-import { formatError } from "../utils";
-import { paymentMethodSchema, signInFormSchema, signUpFormSchema } from "../validator";
-import z from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { formatError } from "../utils";
+import { signInFormSchema, signUpFormSchema } from "../validator";
 
 export async function signInWithCredentials(
   prevState: unknown,
@@ -111,7 +110,7 @@ export async function updateUserPaymentMethod(data: { type: string }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, message: 'Not authenticated' };
+      return { success: false, message: "Not authenticated" };
     }
 
     await prisma.user.update({
@@ -119,13 +118,12 @@ export async function updateUserPaymentMethod(data: { type: string }) {
       data: { paymentMethod: data.type },
     });
 
-    // 🔥 Làm mới cache liên quan user
     revalidateTag(`user-${session.user.id}`);
-    revalidatePath('/place-order');
-    revalidatePath('/payment-method');
+    revalidatePath("/place-order");
+    revalidatePath("/payment-method");
 
-    return { success: true, message: 'Payment method updated' };
+    return { success: true, message: "Payment method updated" };
   } catch (error) {
-    return { success: false, message: 'Failed to update payment method' };
+    return { success: false, message: "Failed to update payment method" };
   }
 }

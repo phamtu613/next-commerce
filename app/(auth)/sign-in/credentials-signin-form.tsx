@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInWithCredentials } from "@/lib/actions/user.actions";
 import { signInDefaultValues } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect } from "react";
@@ -17,7 +18,7 @@ const CredentialsSignInForm = () => {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || ROUTES.HOME;
 
   useEffect(() => {
     if (data?.success) {
@@ -74,7 +75,7 @@ const CredentialsSignInForm = () => {
 
         <div className="text-sm text-center text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link target="_self" className="link" href="/sign-up">
+          <Link target="_self" className="link" href={ROUTES.SIGN_UP}>
             Sign Up
           </Link>
         </div>

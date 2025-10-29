@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutUser } from "@/lib/actions/user.actions";
+import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
 
 const UserButton = async () => {
@@ -15,7 +16,7 @@ const UserButton = async () => {
 
   if (!session) {
     return (
-      <Link href="/sign-in">
+      <Link href={ROUTES.SIGN_IN}>
         <Button>Sign In</Button>
       </Link>
     );
