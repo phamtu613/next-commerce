@@ -93,102 +93,107 @@ export async function getOrderById(orderId: string) {
 
 export async function createPayPalOrder(
   orderId: string,
-  totalPrice: number | string | Decimal
+  totalPrice: number | string
 ): Promise<string> {
-  console.log('🟢 ===== START createPayPalOrder =====');
-  console.log('🟢 orderId:', orderId);
-  console.log('🟢 totalPrice RAW:', totalPrice);
-  console.log('🟢 typeof totalPrice:', typeof totalPrice);
-  console.log('🟢 totalPrice constructor:', totalPrice?.constructor?.name);
-  
-  if (!orderId) throw new Error('Missing orderId for PayPal order');
+  console.log("🟢 ===== START createPayPalOrder =====");
+  console.log("🟢 orderId:", orderId);
+  console.log("🟢 totalPrice RAW:", totalPrice);
 
-  let total: number;
+  if (!orderId) throw new Error("Missing orderId for PayPal order");
 
-  try {
-    // 1️⃣ Nếu là Decimal object
-    if (totalPrice && typeof totalPrice === 'object' && 'toNumber' in totalPrice) {
-      console.log('🟢 Case: Decimal object');
-      total = (totalPrice as Decimal).toNumber();
-      console.log('🟢 Decimal.toNumber():', total);
-    } 
-    // 2️⃣ Nếu là string
-    else if (typeof totalPrice === 'string') {
-      console.log('🟢 Case: String');
-      total = parseFloat(totalPrice);
-      console.log('🟢 parseFloat(string):', total);
-    }
-    // 3️⃣ Nếu là number
-    else if (typeof totalPrice === 'number') {
-      console.log('🟢 Case: Number');
-      total = totalPrice;
-      console.log('🟢 Direct number:', total);
-    }
-    // 4️⃣ Fallback
-    else {
-      console.log('🟢 Case: Fallback Number()');
-      total = Number(totalPrice);
-      console.log('🟢 Number():', total);
-    }
-
-    console.log('🟢 Final total:', total);
-    console.log('🟢 isNaN(total):', isNaN(total));
-
-  } catch (conversionError) {
-    console.error('❌ Conversion error:', conversionError);
-    console.error('❌ totalPrice that failed:', totalPrice);
-    throw new Error(`Failed to convert totalPrice: ${conversionError}`);
-  }
+  const total = typeof totalPrice === "string" ? parseFloat(totalPrice) : totalPrice;
 
   if (isNaN(total) || total <= 0) {
-    console.error('❌ Invalid total after conversion:', {
-      original: totalPrice,
-      converted: total,
-      isNaN: isNaN(total),
-    });
-    throw new Error(`Invalid totalPrice for PayPal order: ${totalPrice} → ${total}`);
+    throw new Error(`Invalid totalPrice: ${totalPrice}`);
   }
 
-  console.log('🟢 Getting PayPal access token...');
   const accessToken = await getPayPalAccessToken();
 
-  console.log('🟢 Creating PayPal order with USD', total.toFixed(2));
-  const res = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
+  // 🧩 JSON body theo chuẩn PayPal API (y hệt curl bạn gửi)
+  const body = {
+    intent: "CAPTURE",
+    payment_source: {
+      paypal: {
+        experience_context: {
+          payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+          landing_page: "LOGIN",
+          shipping_preference: "GET_FROM_FILE",
+          user_action: "PAY_NOW",
+          return_url: "https://example.com/returnUrl",
+          cancel_url: "https://example.com/cancelUrl",
+        },
+      },
     },
-    body: JSON.stringify({
-      intent: 'CAPTURE',
-      purchase_units: [
-        {
-          reference_id: orderId,
-          amount: {
-            currency_code: 'USD',
-            value: total.toFixed(2),
+    purchase_units: [
+      {
+        invoice_id: orderId,
+        amount: {
+          currency_code: "USD",
+          value: total.toFixed(2),
+          breakdown: {
+            item_total: { currency_code: "USD", value: (total - 10).toFixed(2) },
+            shipping: { currency_code: "USD", value: "10.00" },
           },
         },
-      ],
-    }),
+        items: [
+          {
+            name: "T-Shirt",
+            description: "Super Fresh Shirt",
+            unit_amount: { currency_code: "USD", value: "20.00" },
+            quantity: "1",
+            category: "PHYSICAL_GOODS",
+            sku: "sku01",
+            image_url: "https://example.com/static/images/items/1/tshirt_green.jpg",
+            url: "https://example.com/url-to-the-item-being-purchased-1",
+            upc: { type: "UPC-A", code: "123456789012" },
+          },
+          {
+            name: "Shoes",
+            description: "Running, Size 10.5",
+            sku: "sku02",
+            unit_amount: { currency_code: "USD", value: "100.00" },
+            quantity: "2",
+            category: "PHYSICAL_GOODS",
+            image_url: "https://example.com/static/images/items/1/shoes_running.jpg",
+            url: "https://example.com/url-to-the-item-being-purchased-2",
+            upc: { type: "UPC-A", code: "987654321012" },
+          },
+        ],
+      },
+    ],
+  };
+
+  console.log("📦 PayPal request body:", JSON.stringify(body, null, 2));
+
+  const res = await fetch("https://api-m.sandbox.paypal.com/v2/checkout/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "PayPal-Request-Id": crypto.randomUUID(), // giúp tránh trùng request
+    },
+    body: JSON.stringify(body),
   });
 
   const data = await res.json();
+  console.log("📩 PayPal API response:", data);
 
   if (!res.ok || !data.id) {
-    console.error('❌ PayPal API error:', data);
-    throw new Error(data.message || 'Failed to create PayPal order');
+    console.error("❌ PayPal API error:", data);
+    throw new Error(data.message || "Failed to create PayPal order");
   }
 
-  console.log('✅ PayPal order created:', data.id);
-  console.log('🟢 ===== END createPayPalOrder =====');
+  console.log("✅ PayPal order created successfully:", data.id);
+  console.log("🟢 ===== END createPayPalOrder =====");
   return data.id;
 }
+
+
 
 export async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const secret = process.env.PAYPAL_APP_SECRET;
-  
+
 
   if (!clientId || !secret) throw new Error('PayPal credentials are missing');
 

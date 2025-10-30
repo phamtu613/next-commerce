@@ -55,15 +55,15 @@ export default function PlaceOrderClient({ user, cart }: any) {
       }
 
       setIsCreatingOrder(true);
-      
+
       const result = await createOrder();
-      
+
       if (!result.success) {
         toast({
           description: result.message,
           variant: 'destructive',
         });
-        
+
         if (result.redirectTo) {
           router.push(result.redirectTo);
         }
@@ -93,63 +93,43 @@ export default function PlaceOrderClient({ user, cart }: any) {
   const handleCreatePayPalOrder = async () => {
     try {
       console.log('🔵 Step 1: Validating order conditions...');
-      
-      // 1️⃣ Kiểm tra điều kiện trước
       const check = canPlaceOrder();
       if (!check.valid) {
-        toast({
-          description: check.message,
-          variant: 'destructive',
-        });
+        toast({ description: check.message, variant: 'destructive' });
         throw new Error(check.message);
       }
 
       console.log('🔵 Step 2: Creating order in database...');
-      
-      // 2️⃣ Tạo order trong DB
-      const orderResult = await createOrder();
-      
+
+      const orderResult = await fetch('/api/order/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartId: cart.id, userId: user.id }),
+      }).then((res) => res.json());
+
       console.log('🔵 Order result:', orderResult);
-      
+
       if (!orderResult.success) {
-        toast({
-          description: orderResult.message,
-          variant: 'destructive',
-        });
+        toast({ description: orderResult.message, variant: 'destructive' });
         throw new Error(orderResult.message);
       }
 
-      // 3️⃣ Lấy orderId từ redirectTo
-      const createdOrderId = orderResult.redirectTo?.split('/').pop();
-      
-      if (!createdOrderId) {
-        throw new Error('Failed to get order ID');
-      }
+      const createdOrderId = orderResult.orderId;
+      if (!createdOrderId) throw new Error('Failed to get order ID');
 
       console.log('🔵 Step 3: Order created with ID:', createdOrderId);
       console.log('🔵 Step 4: Creating PayPal order...');
-      console.log('🔵 Cart total price:', cart.totalPrice);
-
-      // 4️⃣ Tạo PayPal order
-      const paypalOrderId = await createPayPalOrder(
-        createdOrderId,
-        cart.totalPrice
-      );
+      const paypalOrderId = await createPayPalOrder(createdOrderId, cart.totalPrice);
 
       console.log('✅ PayPal order created:', paypalOrderId);
-      
-      // Lưu orderId để dùng trong onApprove
       setOrderId(createdOrderId);
-
       return paypalOrderId;
-      
     } catch (error) {
       console.error('❌ Error in handleCreatePayPalOrder:', error);
-      
-      // Không cần toast ở đây nếu đã toast ở trên
       throw error;
     }
   };
+
 
   // 🟨 Approve PayPal payment
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
@@ -159,9 +139,9 @@ export default function PlaceOrderClient({ user, cart }: any) {
       }
 
       console.log('🟡 Approving payment for order:', orderId);
-      
+
       const res = await approvePayPalOrder(orderId, data);
-      
+
       toast({
         description: res.message,
         variant: res.success ? 'default' : 'destructive',
@@ -237,9 +217,9 @@ export default function PlaceOrderClient({ user, cart }: any) {
               </p>
             )}
             <Link href="/payment-method">
-              <Button 
-                variant={user.paymentMethod ? "outline" : "default"} 
-                size="sm" 
+              <Button
+                variant={user.paymentMethod ? "outline" : "default"}
+                size="sm"
                 className="mt-3"
               >
                 {user.paymentMethod ? 'Edit' : 'Select Payment Method'}
@@ -384,7 +364,7 @@ export default function PlaceOrderClient({ user, cart }: any) {
               </div>
             ) : user.paymentMethod !== 'PayPal' && canPlaceOrder().valid ? (
               /* Cash on Delivery hoặc payment method khác */
-              <Button 
+              <Button
                 className="w-full mt-4 text-base font-medium py-6"
                 onClick={handlePlaceOrder}
                 disabled={isCreatingOrder}
@@ -393,7 +373,7 @@ export default function PlaceOrderClient({ user, cart }: any) {
               </Button>
             ) : (
               /* Disable button nếu thiếu thông tin */
-              <Button 
+              <Button
                 className="w-full mt-4 text-base font-medium py-6"
                 disabled
               >
