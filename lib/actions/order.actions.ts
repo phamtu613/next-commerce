@@ -91,6 +91,104 @@ export async function getOrderById(orderId: string) {
   return convertToPlainObject(data);
 }
 
+// export async function createPayPalOrder(
+//   orderId: string,
+//   totalPrice: number | string
+// ): Promise<string> {
+//   console.log("🟢 ===== START createPayPalOrder =====");
+//   console.log("🟢 orderId:", orderId);
+//   console.log("🟢 totalPrice RAW:", totalPrice);
+
+//   if (!orderId) throw new Error("Missing orderId for PayPal order");
+
+//   const total = typeof totalPrice === "string" ? parseFloat(totalPrice) : totalPrice;
+
+//   if (isNaN(total) || total <= 0) {
+//     throw new Error(`Invalid totalPrice: ${totalPrice}`);
+//   }
+
+//   const accessToken = await getPayPalAccessToken();
+
+//   // 🧩 JSON body theo chuẩn PayPal API (y hệt curl bạn gửi)
+//   const body = {
+//     intent: "CAPTURE",
+//     payment_source: {
+//       paypal: {
+//         experience_context: {
+//           payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+//           landing_page: "LOGIN",
+//           shipping_preference: "GET_FROM_FILE",
+//           user_action: "PAY_NOW",
+//           return_url: "https://example.com/returnUrl",
+//           cancel_url: "https://example.com/cancelUrl",
+//         },
+//       },
+//     },
+//     purchase_units: [
+//       {
+//         invoice_id: orderId,
+//         amount: {
+//           currency_code: "USD",
+//           value: total.toFixed(2),
+//           breakdown: {
+//             item_total: { currency_code: "USD", value: (total - 10).toFixed(2) },
+//             shipping: { currency_code: "USD", value: "10.00" },
+//           },
+//         },
+//         items: [
+//           {
+//             name: "T-Shirt",
+//             description: "Super Fresh Shirt",
+//             unit_amount: { currency_code: "USD", value: "20.00" },
+//             quantity: "1",
+//             category: "PHYSICAL_GOODS",
+//             sku: "sku01",
+//             image_url: "https://example.com/static/images/items/1/tshirt_green.jpg",
+//             url: "https://example.com/url-to-the-item-being-purchased-1",
+//             upc: { type: "UPC-A", code: "123456789012" },
+//           },
+//           {
+//             name: "Shoes",
+//             description: "Running, Size 10.5",
+//             sku: "sku02",
+//             unit_amount: { currency_code: "USD", value: "100.00" },
+//             quantity: "2",
+//             category: "PHYSICAL_GOODS",
+//             image_url: "https://example.com/static/images/items/1/shoes_running.jpg",
+//             url: "https://example.com/url-to-the-item-being-purchased-2",
+//             upc: { type: "UPC-A", code: "987654321012" },
+//           },
+//         ],
+//       },
+//     ],
+//   };
+
+//   console.log("📦 PayPal request body:", JSON.stringify(body, null, 2));
+
+//   const res = await fetch("https://api-m.sandbox.paypal.com/v2/checkout/orders", {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${accessToken}`,
+//       "PayPal-Request-Id": crypto.randomUUID(), // giúp tránh trùng request
+//     },
+//     body: JSON.stringify(body),
+//   });
+
+//   const data = await res.json();
+//   console.log("📩 PayPal API response:", data);
+
+//   if (!res.ok || !data.id) {
+//     console.error("❌ PayPal API error:", data);
+//     throw new Error(data.message || "Failed to create PayPal order");
+//   }
+
+//   console.log("✅ PayPal order created successfully:", data.id);
+//   console.log("🟢 ===== END createPayPalOrder =====");
+//   return data.id;
+// }
+
+// ✅ createPayPalOrder FIXED — Không còn ITEM_TOTAL_MISMATCH
 export async function createPayPalOrder(
   orderId: string,
   totalPrice: number | string
@@ -101,15 +199,61 @@ export async function createPayPalOrder(
 
   if (!orderId) throw new Error("Missing orderId for PayPal order");
 
-  const total = typeof totalPrice === "string" ? parseFloat(totalPrice) : totalPrice;
+  // 1️⃣ Lấy thông tin order từ database
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { orderItems: true },
+  });
 
-  if (isNaN(total) || total <= 0) {
-    throw new Error(`Invalid totalPrice: ${totalPrice}`);
-  }
+  if (!order) throw new Error(`Order ${orderId} not found in database`);
+  if (!order.orderItems || order.orderItems.length === 0)
+    throw new Error(`Order ${orderId} has no items`);
 
   const accessToken = await getPayPalAccessToken();
 
-  // 🧩 JSON body theo chuẩn PayPal API (y hệt curl bạn gửi)
+  // 2️⃣ Map orderItems → PayPal items
+  const paypalItems = order.orderItems.map((item) => {
+    const priceNum =
+      typeof item.price === "object"
+        ? parseFloat(item.price.toString())
+        : Number(item.price);
+
+    return {
+      name: item.name,
+      description: item.name,
+      unit_amount: {
+        currency_code: "USD",
+        value: priceNum.toFixed(2),
+      },
+      quantity: item.qty.toString(),
+      category: "PHYSICAL_GOODS" as const,
+      sku: item.slug || item.productId,
+    };
+  });
+
+  // 3️⃣ Tính toán item_total, shipping, tổng chính xác
+  const itemsPrice = order.orderItems.reduce((sum, item) => {
+    const priceNum =
+      typeof item.price === "object"
+        ? parseFloat(item.price.toString())
+        : Number(item.price);
+    return sum + priceNum * Number(item.qty);
+  }, 0);
+
+  const shippingPrice =
+    typeof order.shippingPrice === "object"
+      ? parseFloat(order.shippingPrice.toString())
+      : Number(order.shippingPrice || 0);
+
+  const total = itemsPrice + shippingPrice;
+
+  console.log("💰 Breakdown:", {
+    itemsPrice: itemsPrice.toFixed(2),
+    shippingPrice: shippingPrice.toFixed(2),
+    total: total.toFixed(2),
+  });
+
+  // 4️⃣ Tạo request body gửi PayPal
   const body = {
     intent: "CAPTURE",
     payment_source: {
@@ -117,10 +261,14 @@ export async function createPayPalOrder(
         experience_context: {
           payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
           landing_page: "LOGIN",
-          shipping_preference: "GET_FROM_FILE",
+          shipping_preference: "NO_SHIPPING",
           user_action: "PAY_NOW",
-          return_url: "https://example.com/returnUrl",
-          cancel_url: "https://example.com/cancelUrl",
+          return_url: `${
+            process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"
+          }/order/${orderId}`,
+          cancel_url: `${
+            process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"
+          }/order/${orderId}`,
         },
       },
     },
@@ -131,46 +279,30 @@ export async function createPayPalOrder(
           currency_code: "USD",
           value: total.toFixed(2),
           breakdown: {
-            item_total: { currency_code: "USD", value: (total - 10).toFixed(2) },
-            shipping: { currency_code: "USD", value: "10.00" },
+            item_total: {
+              currency_code: "USD",
+              value: itemsPrice.toFixed(2),
+            },
+            shipping: {
+              currency_code: "USD",
+              value: shippingPrice.toFixed(2),
+            },
           },
         },
-        items: [
-          {
-            name: "T-Shirt",
-            description: "Super Fresh Shirt",
-            unit_amount: { currency_code: "USD", value: "20.00" },
-            quantity: "1",
-            category: "PHYSICAL_GOODS",
-            sku: "sku01",
-            image_url: "https://example.com/static/images/items/1/tshirt_green.jpg",
-            url: "https://example.com/url-to-the-item-being-purchased-1",
-            upc: { type: "UPC-A", code: "123456789012" },
-          },
-          {
-            name: "Shoes",
-            description: "Running, Size 10.5",
-            sku: "sku02",
-            unit_amount: { currency_code: "USD", value: "100.00" },
-            quantity: "2",
-            category: "PHYSICAL_GOODS",
-            image_url: "https://example.com/static/images/items/1/shoes_running.jpg",
-            url: "https://example.com/url-to-the-item-being-purchased-2",
-            upc: { type: "UPC-A", code: "987654321012" },
-          },
-        ],
+        items: paypalItems,
       },
     ],
   };
 
   console.log("📦 PayPal request body:", JSON.stringify(body, null, 2));
 
+  // 5️⃣ Gọi API PayPal
   const res = await fetch("https://api-m.sandbox.paypal.com/v2/checkout/orders", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      "PayPal-Request-Id": crypto.randomUUID(), // giúp tránh trùng request
+      "PayPal-Request-Id": crypto.randomUUID(),
     },
     body: JSON.stringify(body),
   });
@@ -187,7 +319,6 @@ export async function createPayPalOrder(
   console.log("🟢 ===== END createPayPalOrder =====");
   return data.id;
 }
-
 
 
 export async function getPayPalAccessToken(): Promise<string> {

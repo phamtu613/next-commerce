@@ -39,96 +39,251 @@ export default function PlaceOrderClient({ user, cart }: any) {
   };
 
   // 🟦 Tạo order trong DB trước (cho Cash on Delivery)
-  const handlePlaceOrder = async () => {
-    try {
-      // Kiểm tra điều kiện
-      const check = canPlaceOrder();
-      if (!check.valid) {
-        toast({
-          description: check.message,
-          variant: 'destructive',
-        });
-        if (check.redirectTo) {
-          router.push(check.redirectTo);
-        }
-        return;
-      }
+  // const handlePlaceOrder = async () => {
+  //   try {
+  //     // Kiểm tra điều kiện
+  //     const check = canPlaceOrder();
+  //     if (!check.valid) {
+  //       toast({
+  //         description: check.message,
+  //         variant: 'destructive',
+  //       });
+  //       if (check.redirectTo) {
+  //         router.push(check.redirectTo);
+  //       }
+  //       return;
+  //     }
 
-      setIsCreatingOrder(true);
+  //     setIsCreatingOrder(true);
 
-      const result = await createOrder();
+  //     const result = await createOrder();
 
-      if (!result.success) {
-        toast({
-          description: result.message,
-          variant: 'destructive',
-        });
+  //     if (!result.success) {
+  //       toast({
+  //         description: result.message,
+  //         variant: 'destructive',
+  //       });
 
-        if (result.redirectTo) {
-          router.push(result.redirectTo);
-        }
-        return;
-      }
+  //       if (result.redirectTo) {
+  //         router.push(result.redirectTo);
+  //       }
+  //       return;
+  //     }
 
-      toast({
-        description: result.message,
-        variant: 'default',
-      });
+  //     toast({
+  //       description: result.message,
+  //       variant: 'default',
+  //     });
 
-      // Redirect đến trang order detail
-      if (result.redirectTo) {
-        router.push(result.redirectTo);
-      }
-    } catch (error) {
-      toast({
-        description: error instanceof Error ? error.message : 'Failed to create order',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsCreatingOrder(false);
-    }
-  };
+  //     // Redirect đến trang order detail
+  //     if (result.redirectTo) {
+  //       router.push(result.redirectTo);
+  //     }
+  //   } catch (error) {
+  //     toast({
+  //       description: error instanceof Error ? error.message : 'Failed to create order',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setIsCreatingOrder(false);
+  //   }
+  // };
 
   // 🟩 Tạo PayPal order
-  const handleCreatePayPalOrder = async () => {
-    try {
-      console.log('🔵 Step 1: Validating order conditions...');
-      const check = canPlaceOrder();
-      if (!check.valid) {
-        toast({ description: check.message, variant: 'destructive' });
-        throw new Error(check.message);
-      }
+  // const handleCreatePayPalOrder = async () => {
+  //   try {
+  //     console.log('🔵 Step 1: Validating order conditions...');
+  //     const check = canPlaceOrder();
+  //     if (!check.valid) {
+  //       toast({ description: check.message, variant: 'destructive' });
+  //       throw new Error(check.message);
+  //     }
 
-      console.log('🔵 Step 2: Creating order in database...');
+  //     console.log('🔵 Step 2: Creating order in database...');
 
-      const orderResult = await fetch('/api/order/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId: cart.id, userId: user.id }),
-      }).then((res) => res.json());
+  //     const orderResult = await fetch('/api/order/create', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ cartId: cart.id, userId: user.id }),
+  //     }).then((res) => res.json());
 
-      console.log('🔵 Order result:', orderResult);
+  //     console.log('🔵 Order result:', orderResult);
 
-      if (!orderResult.success) {
-        toast({ description: orderResult.message, variant: 'destructive' });
-        throw new Error(orderResult.message);
-      }
+  //     if (!orderResult.success) {
+  //       toast({ description: orderResult.message, variant: 'destructive' });
+  //       throw new Error(orderResult.message);
+  //     }
 
-      const createdOrderId = orderResult.orderId;
-      if (!createdOrderId) throw new Error('Failed to get order ID');
+  //     const createdOrderId = orderResult.orderId;
+  //     if (!createdOrderId) throw new Error('Failed to get order ID');
 
-      console.log('🔵 Step 3: Order created with ID:', createdOrderId);
-      console.log('🔵 Step 4: Creating PayPal order...');
-      const paypalOrderId = await createPayPalOrder(createdOrderId, cart.totalPrice);
+  //     console.log('🔵 Step 3: Order created with ID:', createdOrderId);
+  //     console.log('🔵 Step 4: Creating PayPal order...');
+  //     const paypalOrderId = await createPayPalOrder(createdOrderId, cart.totalPrice);
 
-      console.log('✅ PayPal order created:', paypalOrderId);
-      setOrderId(createdOrderId);
-      return paypalOrderId;
-    } catch (error) {
-      console.error('❌ Error in handleCreatePayPalOrder:', error);
-      throw error;
+  //     console.log('✅ PayPal order created:', paypalOrderId);
+  //     setOrderId(createdOrderId);
+  //     return paypalOrderId;
+  //   } catch (error) {
+  //     console.error('❌ Error in handleCreatePayPalOrder:', error);
+  //     throw error;
+  //   }
+  // };
+  // 🟩 Tạo đơn hàng thường (COD / Stripe)
+const handlePlaceOrder = async () => {
+  try {
+    const check = canPlaceOrder();
+    if (!check.valid) {
+      toast({
+        description: check.message,
+        variant: "destructive",
+      });
+      if (check.redirectTo) router.push(check.redirectTo);
+      return;
     }
-  };
+
+    setIsCreatingOrder(true);
+
+    // 🧾 Chuẩn bị dữ liệu gửi backend
+    const orderPayload = {
+      userId: user.id,
+      cartId: cart.id, // 🟢 thêm dòng này
+      shippingAddress:user.address,
+      paymentMethod:user.paymentMethod,
+      cartItems: cart.items.map((item:any) => ({
+        productId: item.id,
+        name: item.name,
+        slug: item.slug,
+        image: item.image,
+        qty: item.quantity,
+        price: item.price,
+      })),
+      prices: {
+        itemsPrice: cart.items.reduce((sum:any, i:any) => sum + i.price * i.quantity, 0),
+        shippingPrice:cart.shippingPrice,
+        taxPrice:cart.taxPrice,
+        totalPrice:cart.totalPrice,
+      },
+    };
+
+
+    // 🧩 Gọi API tạo đơn hàng
+    const res = await fetch("/api/order/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    });
+    const result = await res.json();
+
+    if (!result.success) {
+      toast({ description: result.message, variant: "destructive" });
+      if (result.redirectTo) router.push(result.redirectTo);
+      return;
+    }
+
+    toast({ description: result.message, variant: "default" });
+
+    if (result.redirectTo) router.push(result.redirectTo);
+  } catch (error) {
+    toast({
+      description:
+        error instanceof Error ? error.message : "Failed to create order",
+      variant: "destructive",
+    });
+  } finally {
+    setIsCreatingOrder(false);
+  }
+};
+
+// 🟦 Tạo đơn hàng PayPal
+const handleCreatePayPalOrder = async () => {
+  try {
+    console.log("🔵 Step 1: Validating order conditions...");
+    const check = canPlaceOrder();
+    if (!check.valid) {
+      toast({ description: check.message, variant: "destructive" });
+      throw new Error(check.message);
+    }
+
+    setIsCreatingOrder(true);
+
+    console.log("🔵 Step 2: Creating order in database...");
+// 🟩 Giả sử cart hoặc form của bạn có thông tin địa chỉ giao hàng
+    const shippingAddress = cart.shippingAddress || {
+      fullName: user.name,
+      address: '123 Test Street',
+      city: 'Hanoi',
+      country: 'Vietnam',
+      postalCode: '100000',
+    };
+    const itemsPrice = cart.itemsPrice || 0;
+    const shippingPrice = cart.shippingPrice || 0;
+    const taxPrice = cart.taxPrice || 0;
+    const totalPrice = cart.totalPrice || 0;
+    // 🧾 Gửi toàn bộ thông tin giỏ hàng sang backend
+    const orderPayload = {
+      userId: user.id,
+      shippingAddress,
+      paymentMethod: "PayPal",
+      cartItems: cart.items.map((item:any) => ({
+        productId: item.id,
+        name: item.name,
+        slug: item.slug,
+        image: item.image,
+        qty: item.quantity,
+        price: item.price,
+      })),
+      prices: {
+        itemsPrice: cart.items.reduce((sum:any, i:any) => sum + i.price * i.quantity, 0),
+        shippingAddress,
+        taxPrice,
+        totalPrice:
+          cart.items.reduce((sum:any, i:any) => sum + i.price * i.quantity, 0) +
+          shippingPrice +
+          taxPrice,
+      },
+    };
+
+    const orderResult = await fetch("/api/order/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    }).then((res) => res.json());
+
+    console.log("🔵 Order result:", orderResult);
+
+    if (!orderResult.success) {
+      toast({ description: orderResult.message, variant: "destructive" });
+      throw new Error(orderResult.message);
+    }
+
+    const createdOrderId = orderResult.orderId;
+    if (!createdOrderId) throw new Error("Failed to get order ID");
+
+    console.log("🔵 Step 3: Order created with ID:", createdOrderId);
+    console.log("🔵 Step 4: Creating PayPal order...");
+
+    // 🟨 Gọi đến PayPal API để tạo đơn hàng thực tế
+    const paypalOrderId = await createPayPalOrder(
+      createdOrderId,
+      orderResult.totalPrice || cart.totalPrice
+    );
+
+    console.log("✅ PayPal order created:", paypalOrderId);
+    setOrderId(createdOrderId);
+    return paypalOrderId;
+  } catch (error) {
+    console.error("❌ Error in handleCreatePayPalOrder:", error);
+    toast({
+      description:
+        error instanceof Error ? error.message : "PayPal order failed",
+      variant: "destructive",
+    });
+    throw error;
+  } finally {
+    setIsCreatingOrder(false);
+  }
+};
 
 
   // 🟨 Approve PayPal payment
