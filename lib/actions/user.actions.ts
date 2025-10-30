@@ -5,7 +5,11 @@ import { prisma } from "@/db/prisma";
 import { hashSync } from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { formatError } from "../utils";
-import { signInFormSchema, signUpFormSchema } from "../validator";
+import {
+  signInFormSchema,
+  signUpFormSchema,
+  updateProfileSchema,
+} from "../validator";
 
 export async function signInWithCredentials(
   prevState: unknown,
@@ -67,11 +71,10 @@ export async function signUp(prevState: unknown, formData: FormData) {
       error instanceof Error &&
       error.name === "PrismaClientKnownRequestError"
     ) {
-      const errorInfo = formatError(error);
+      const errorMessage = formatError(error);
       return {
         success: false,
-        message: errorInfo.message,
-        field: errorInfo.field,
+        message: errorMessage,
       };
     }
 
@@ -84,11 +87,10 @@ export async function signUp(prevState: unknown, formData: FormData) {
       }
     }
 
-    const errorInfo = formatError(error);
+    const errorMessage = formatError(error);
     return {
       success: false,
-      message: errorInfo.message,
-      field: errorInfo.field,
+      message: errorMessage,
     };
   }
 }
@@ -104,6 +106,44 @@ export async function getUserById(userId: string) {
 
   if (!user) throw new Error("User not found");
   return user;
+}
+
+// Update User Profile
+export async function updateProfile(user: { name: string; email: string }) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: "User is not authenticated" };
+    }
+
+    // Validate input
+    const validatedData = updateProfileSchema.parse(user);
+
+    const currentUser = await prisma.user.findFirst({
+      where: {
+        id: session.user.id,
+      },
+    });
+
+    if (!currentUser) throw new Error("User not found");
+
+    await prisma.user.update({
+      where: {
+        id: currentUser.id,
+      },
+      data: {
+        name: validatedData.name,
+      },
+    });
+
+    return {
+      success: true,
+      message: "User updated successfully",
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
 }
 
 export async function updateUserPaymentMethod(data: { type: string }) {

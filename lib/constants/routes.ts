@@ -14,8 +14,14 @@ export const ROUTES = {
     BASE: "/order",
     BY_ID: (id: string) => `/order/${id}`,
   },
+  USER: {
+    BASE: "/user",
+    PROFILE: "/user/profile",
+    ORDERS: "/user/orders",
+  },
   ADMIN: {
     BASE: "/admin",
+    OVERVIEW: "/admin/overview",
     PRODUCTS: "/admin/products",
     ORDERS: "/admin/orders",
     USERS: "/admin/users",
