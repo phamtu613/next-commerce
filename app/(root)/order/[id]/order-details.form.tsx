@@ -12,13 +12,15 @@ import {
   PayPalScriptProvider,
   usePayPalScriptReducer,
 } from "@paypal/react-paypal-js";
-
-const OrderDetailsTable = ({
+import StripePayment from "./stripe-payment";
+const OrderDetailsForm = ({
   order,
   paypalClientId,
+  stripeClientSecret,
 }: {
   order: Order;
   paypalClientId: string;
+  stripeClientSecret?: string | null;
 }) => {
   const { isPaid, paymentMethod } = order;
 
@@ -103,6 +105,7 @@ const OrderDetailsTable = ({
           <p>Total: ${order.totalPrice}</p>
         </div>
 
+        {/* PayPal Payment */}
         {!isPaid && paymentMethod === "PayPal" && (
           <div className="border rounded-lg p-4">
             <h3 className="font-semibold mb-3">Complete Payment</h3>
@@ -141,6 +144,19 @@ const OrderDetailsTable = ({
           </div>
         )}
 
+        {/* Stripe Payment */}
+        {!isPaid && paymentMethod === "Stripe" && stripeClientSecret && (
+          <div className="border rounded-lg p-4 mt-4">
+            <h3 className="font-semibold mb-3">Complete Stripe Payment</h3>
+            <StripePayment
+              priceInCents={Number(order.totalPrice) * 100}
+              orderId={order.id}
+              clientSecret={stripeClientSecret}
+            />
+          </div>
+        )}
+
+        {/* Paid Message */}
         {isPaid && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <p className="text-green-800 font-semibold">
@@ -153,4 +169,4 @@ const OrderDetailsTable = ({
   );
 };
 
-export default OrderDetailsTable;
+export default OrderDetailsForm;
