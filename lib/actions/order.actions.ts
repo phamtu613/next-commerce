@@ -3,10 +3,12 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { CartItem, PaymentResult } from "@/types";
-import { Decimal, Prisma } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { PAGE_SIZE } from "../constants";
+import { ROUTES } from "../constants/routes";
 import { paypal } from "../paypal";
 import { convertToPlainObject, formatError } from "../utils";
 import { insertOrderSchema } from "../validator";
@@ -111,7 +113,6 @@ export async function getOrderById(orderId: string) {
   return convertToPlainObject(data);
 }
 
-// Get User Orders
 export async function getMyOrders({
   limit = PAGE_SIZE,
   page,
@@ -139,29 +140,24 @@ export async function getMyOrders({
   };
 }
 
-// Get sales data and order summary
 export async function getOrderSummary() {
-  // Get counts for each resource
   const ordersCount = await prisma.order.count();
   const productsCount = await prisma.product.count();
   const usersCount = await prisma.user.count();
 
-  // Calculate total sales
   const totalSales = await prisma.order.aggregate({
     _sum: { totalPrice: true },
   });
 
-  // Get monthly sales
   const salesDataRaw = await prisma.$queryRaw<
     Array<{ month: string; totalSales: Prisma.Decimal }>
   >`SELECT to_char("createdAt", 'MM/YY') as "month", sum("totalPrice") as "totalSales" FROM "Order" GROUP BY to_char("createdAt", 'MM/YY')`;
 
   const salesData: SalesDataType = salesDataRaw.map((entry) => ({
     month: entry.month,
-    totalSales: Number(entry.totalSales), // Convert Decimal to number
+    totalSales: Number(entry.totalSales),
   }));
 
-  // Get latest sales
   const latestOrders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -180,22 +176,42 @@ export async function getOrderSummary() {
   };
 }
 
-// Get All Orders (Admin)
 export async function getAllOrders({
   limit = PAGE_SIZE,
   page,
+  query,
 }: {
   limit?: number;
   page: number;
+  query?: string;
 }) {
+  const queryFilter: Prisma.OrderWhereInput =
+    query && query !== "all"
+      ? {
+          user: {
+            name: {
+              contains: query,
+              mode: "insensitive",
+            } as Prisma.StringFilter,
+          },
+        }
+      : {};
+
   const data = await prisma.order.findMany({
+    where: {
+      ...queryFilter,
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
     include: { user: { select: { name: true } } },
   });
 
-  const dataCount = await prisma.order.count();
+  const dataCount = await prisma.order.count({
+    where: {
+      ...queryFilter,
+    },
+  });
 
   return {
     data: convertToPlainObject(data),
@@ -410,12 +426,11 @@ async function updateOrderToPaid({
   return updatedOrder;
 }
 
-// Delete Order
 export async function deleteOrder(id: string) {
   try {
     await prisma.order.delete({ where: { id } });
 
-    revalidatePath("/admin/orders");
+    revalidatePath(ROUTES.ADMIN.ORDERS);
 
     return {
       success: true,
@@ -426,7 +441,6 @@ export async function deleteOrder(id: string) {
   }
 }
 
-// Update Order To Paid By COD
 export async function updateOrderToPaidByCOD(orderId: string) {
   try {
     await updateOrderToPaid({ orderId });
@@ -437,7 +451,6 @@ export async function updateOrderToPaidByCOD(orderId: string) {
   }
 }
 
-// Update Order To Delivered
 export async function deliverOrder(orderId: string) {
   try {
     const order = await prisma.order.findFirst({

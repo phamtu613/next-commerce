@@ -10,17 +10,35 @@ const connectionString = {
 
 const adapter = new PrismaNeon(connectionString);
 
+function convertToString(value: any): string {
+  if (value === null || value === undefined) return "0";
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    typeof value.toString === "function"
+  ) {
+    try {
+      return value.toString();
+    } catch {
+      return "0";
+    }
+  }
+
+  return String(value);
+}
+
 export const prisma = new PrismaClient({ adapter }).$extends({
   result: {
     product: {
       price: {
         compute(product: any) {
-          return product.price.toString();
+          return convertToString(product.price);
         },
       },
       rating: {
         compute(product: any) {
-          return product.rating.toString();
+          return convertToString(product.rating);
         },
       },
     },

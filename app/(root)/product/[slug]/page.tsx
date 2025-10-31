@@ -1,10 +1,13 @@
+import { auth } from "@/auth";
 import AddToCart from "@/components/shared/product/add-to-cart";
 import ProductImages from "@/components/shared/product/product-images";
 import ProductPrice from "@/components/shared/product/product-price";
+import Rating from "@/components/shared/product/rating";
 import { Badge } from "@/components/ui/badge";
 import { getMyCart } from "@/lib/actions/cart.actions";
 import { getProductBySlug } from "@/lib/actions/product.actions";
 import { notFound } from "next/navigation";
+import ReviewList from "./review-list";
 
 const ProductDetailsPage = async (props: {
   params: Promise<{ slug: string }>;
@@ -17,6 +20,8 @@ const ProductDetailsPage = async (props: {
   if (!product) notFound();
 
   const cart = await getMyCart();
+  const session = await auth();
+  const userId = session?.user?.id;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -55,25 +60,8 @@ const ProductDetailsPage = async (props: {
             </h1>
 
             <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.floor(Number(product.rating))
-                        ? "text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <span className="text-sm text-gray-600">
-                {product.rating} ({product.numReviews} reviews)
-              </span>
+              <Rating value={Number(product.rating)} />
+              <p>{product.numReviews} reviews</p>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -149,6 +137,14 @@ const ProductDetailsPage = async (props: {
           )}
         </div>
       </div>
+      <section className="mt-10">
+        <h2 className="h2-bold mb-5">Customer Reviews</h2>
+        <ReviewList
+          productId={product.id}
+          productSlug={product.slug}
+          userId={userId || ""}
+        />
+      </section>
     </div>
   );
 };

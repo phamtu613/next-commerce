@@ -19,7 +19,7 @@ import { FormLabel } from "@/components/ui/form-label";
 import { FormMessage } from "@/components/ui/form-message";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { updateUserPaymentMethod } from "@/lib/actions/user.actions";
-import { cn } from "@/lib/utils"; // helper để nối className
+import { cn } from "@/lib/utils";
 import { ArrowRight, Loader } from "lucide-react";
 
 const PaymentMethodForm = ({

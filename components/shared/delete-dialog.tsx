@@ -25,7 +25,6 @@ export default function DeleteDialog({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  // Handle delete order button click
   const handleDeleteClick = () => {
     startTransition(async () => {
       const res = await action(id);

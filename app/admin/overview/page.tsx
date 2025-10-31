@@ -23,7 +23,6 @@ export const metadata: Metadata = {
 const AdminOverviewPage = async () => {
   await requireAdmin();
 
-  // Get order summary
   const summary = await getOrderSummary();
 
   return (

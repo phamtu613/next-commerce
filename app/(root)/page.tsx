@@ -1,16 +1,25 @@
 import Header from "@/components/shared/header";
+import { ProductCarousel } from "@/components/shared/product/product-carousel";
 import ProductList from "@/components/shared/product/product-list";
-import { getLatestProducts } from "@/lib/actions/product.actions";
+import ViewAllProductsButton from "@/components/shared/view-all-products-button";
+import {
+  getFeaturedProducts,
+  getLatestProducts,
+} from "@/lib/actions/product.actions";
 
 const HomePage = async () => {
   const latestProducts = await getLatestProducts();
+  const featuredProducts = await getFeaturedProducts();
 
   return (
     <>
       <Header />
       <div className="wrapper space-y-8">
-        <h2 className="h2-bold">Latest Products</h2>
+        {featuredProducts.length > 0 && (
+          <ProductCarousel data={featuredProducts} />
+        )}
         <ProductList title="Latest Products" data={latestProducts} />
+        <ViewAllProductsButton />
       </div>
     </>
   );

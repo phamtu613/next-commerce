@@ -158,7 +158,6 @@ const OrderDetailsTable = ({
                 <div>Total</div>
                 <div>{formatCurrency(totalPrice)}</div>
               </div>
-              {/* Cash On Delivery */}
               {isAdmin && !isPaid && paymentMethod === "CashOnDelivery" && (
                 <MarkAsPaidButton order={order} />
               )}
@@ -173,7 +172,6 @@ const OrderDetailsTable = ({
   );
 };
 
-// Button To mark the order as paid
 const MarkAsPaidButton = ({ order }: { order: Order }) => {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -196,7 +194,6 @@ const MarkAsPaidButton = ({ order }: { order: Order }) => {
   );
 };
 
-// Button To mark the order as delivered
 const MarkAsDeliveredButton = ({ order }: { order: Order }) => {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();

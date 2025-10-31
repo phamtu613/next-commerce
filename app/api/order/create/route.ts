@@ -20,8 +20,8 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         userId,
-        paymentMethod: "PayPal", // hoặc lấy từ user
-        shippingAddress: {}, // nếu có
+        paymentMethod: "PayPal",
+        shippingAddress: {},
         itemsPrice: cart.itemsPrice,
         shippingPrice: cart.shippingPrice,
         taxPrice: cart.taxPrice,

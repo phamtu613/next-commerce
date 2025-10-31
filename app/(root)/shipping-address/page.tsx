@@ -5,8 +5,10 @@ import CheckoutSteps from "@/components/shared/checkout-steps";
 import { getMyCart } from "@/lib/actions/cart.actions";
 import { getUserById } from "@/lib/actions/user.actions";
 import { ROUTES, createSignInUrl } from "@/lib/constants/routes";
+import { ShippingAddress } from "@/types";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import ShippingAddressForm from "./shipping-address-form";
 
 export const metadata: Metadata = {
   title: "Shipping Address",
@@ -40,57 +42,12 @@ const ShippingAddressPage = async () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Shipping Form Coming Soon
-            </h3>
-            <p className="text-gray-600 mb-6">
-              We're working on the shipping address form. This will be
-              implemented in the next section.
-            </p>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-gray-900 mb-2">
-                Current User Info:
-              </h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>
-                  <strong>Name:</strong> {user.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                  <strong>Role:</strong> {user.role}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex space-x-4">
-              <GoToBackButton />
-              <GoToCartButton />
-            </div>
+          <ShippingAddressForm
+            address={(user.address as ShippingAddress) || null}
+          />
+          <div className="mt-6 flex space-x-4">
+            <GoToBackButton />
+            <GoToCartButton />
           </div>
         </div>
       </div>

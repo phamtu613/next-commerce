@@ -66,7 +66,6 @@ export function formatCurrency(amount: number | string | null) {
   }
 }
 
-// Format Numbers
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 export function formatNumber(number: number) {
   return NUMBER_FORMATTER.format(number);
@@ -77,23 +76,23 @@ export function formatId(id: string) {
 
 export const formatDateTime = (dateString: Date) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
-    month: "short", // abbreviated month name (e.g., 'Oct')
-    year: "numeric", // abbreviated month name (e.g., 'Oct')
-    day: "numeric", // numeric day of the month (e.g., '25')
-    hour: "numeric", // numeric hour (e.g., '8')
-    minute: "numeric", // numeric minute (e.g., '30')
-    hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    month: "short",
+    year: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
   };
   const dateOptions: Intl.DateTimeFormatOptions = {
-    weekday: "short", // abbreviated weekday name (e.g., 'Mon')
-    month: "short", // abbreviated month name (e.g., 'Oct')
-    year: "numeric", // numeric year (e.g., '2023')
-    day: "numeric", // numeric day of the month (e.g., '25')
+    weekday: "short",
+    month: "short",
+    year: "numeric",
+    day: "numeric",
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
-    hour: "numeric", // numeric hour (e.g., '8')
-    minute: "numeric", // numeric minute (e.g., '30')
-    hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
   };
   const formattedDateTime: string = new Date(dateString).toLocaleString(
     "en-US",
@@ -114,7 +113,15 @@ export const formatDateTime = (dateString: Date) => {
   };
 };
 
-// Form Pagination Links
+export function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 export function formUrlQuery({
   params,
   key,

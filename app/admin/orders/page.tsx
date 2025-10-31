@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
 import { requireAdmin } from "@/lib/auth-guard";
-import { createOrderUrl } from "@/lib/constants/routes";
+import { ROUTES, createOrderUrl } from "@/lib/constants/routes";
 import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -21,18 +21,33 @@ export const metadata: Metadata = {
 };
 
 const OrdersPage = async (props: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; query?: string }>;
 }) => {
   await requireAdmin();
-  const { page = "1" } = await props.searchParams;
+  const searchParams = await props.searchParams;
+
+  const { page = "1", query: searchText } = searchParams;
 
   const orders = await getAllOrders({
     page: Number(page),
+    query: searchText,
   });
 
   return (
     <div className="space-y-2">
-      <h2 className="h2-bold">Orders</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="h2-bold">Orders</h2>
+        {searchText && (
+          <div>
+            Filtered by <i>&quot;{searchText}&quot;</i>{" "}
+            <Link href={ROUTES.ADMIN.ORDERS}>
+              <Button variant="outline" size="sm">
+                Remove Filter
+              </Button>
+            </Link>
+          </div>
+        )}
+      </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

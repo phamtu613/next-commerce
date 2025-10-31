@@ -18,7 +18,6 @@ export default function UserLayout({
                 {APP_NAME}
               </span>
             </Link>
-            {/* Main Nav Here */}
             <div className="ml-auto flex items-center space-x-4">
               <MainNav className="mx-6" />
             </div>

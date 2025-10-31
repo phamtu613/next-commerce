@@ -26,7 +26,6 @@ const ProfileForm = () => {
     },
   });
 
-  // Update form values when session changes
   useEffect(() => {
     if (session?.user) {
       form.reset({
@@ -38,7 +37,6 @@ const ProfileForm = () => {
 
   const { toast } = useToast();
 
-  // Submit form to update profile
   async function onSubmit(values: z.infer<typeof updateProfileSchema>) {
     const res = await updateProfile(values);
 

@@ -1,5 +1,5 @@
+import AdminSearch from "@/components/shared/admin-search";
 import UserButton from "@/components/shared/user-button";
-import { Input } from "@/components/ui/input";
 import { APP_NAME } from "@/lib/constants";
 import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
@@ -20,15 +20,8 @@ export default async function AdminLayout({
                 {APP_NAME}
               </span>
             </Link>
-            {/* MAIN NAV HERE */}
             <div className="ml-auto flex items-center space-x-4">
-              <div>
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="md:w-[100px] lg:w-[300px]"
-                />
-              </div>
+              <AdminSearch />
               <MainNav className="mx-6" />
               <UserButton />
             </div>

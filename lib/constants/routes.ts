@@ -23,8 +23,11 @@ export const ROUTES = {
     BASE: "/admin",
     OVERVIEW: "/admin/overview",
     PRODUCTS: "/admin/products",
+    PRODUCT_CREATE: "/admin/products/create",
+    PRODUCT_BY_ID: (id: string) => `/admin/products/${id}`,
     ORDERS: "/admin/orders",
     USERS: "/admin/users",
+    USER_BY_ID: (id: string) => `/admin/users/${id}`,
   },
 } as const;
 export const createSignInUrl = (callbackUrl?: string) => {
