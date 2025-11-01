@@ -6562,6 +6562,9 @@ snapshots:
 
   d3-path@3.1.0: {}
 
+
+  d3-path@3.1.0: {}
+
   d3-scale@4.0.2:
     dependencies:
       d3-array: 3.2.4
@@ -6632,6 +6635,22 @@ snapshots:
 
   deepmerge@4.3.1: {}
 
+  debug@4.4.3:
+    dependencies:
+      ms: 2.1.3
+
+  decimal.js-light@2.5.1: {}
+
+  decode-uri-component@0.4.1: {}
+
+  dedent@1.7.0: {}
+
+  deep-is@0.1.4: {}
+
+  deepmerge-ts@7.1.5: {}
+
+  deepmerge@4.3.1: {}
+
   define-data-property@1.1.4:
     dependencies:
       es-define-property: 1.0.1
@@ -6677,6 +6696,10 @@ snapshots:
       dom-serializer: 2.0.0
       domelementtype: 2.3.0
       domhandler: 5.0.3
+
+  dotenv@16.6.1: {}
+
+  dotenv@17.2.3: {}
 
   dotenv@16.6.1: {}
 
@@ -6740,6 +6763,12 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  emoji-regex@8.0.0: {}
+
+  emoji-regex@9.2.2: {}
+
+  empathic@2.0.0: {}
 
   enhanced-resolve@5.18.3:
     dependencies:
@@ -6885,6 +6914,15 @@ snapshots:
       '@esbuild/win32-arm64': 0.25.11
       '@esbuild/win32-ia32': 0.25.11
       '@esbuild/win32-x64': 0.25.11
+
+  escalade@3.2.0: {}
+
+  escape-string-regexp@2.0.0: {}
+
+  escape-string-regexp@4.0.0: {}
+
+
+  es-toolkit@1.41.0: {}
 
   escalade@3.2.0: {}
 
@@ -7125,6 +7163,8 @@ snapshots:
 
   fast-deep-equal@3.1.3: {}
 
+  fast-deep-equal@3.1.3: {}
+
   fast-glob@3.3.1:
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -7147,6 +7187,12 @@ snapshots:
 
   fast-sha256@1.3.0: {}
 
+  fastq@1.19.1:
+    dependencies:
+      reusify: 1.1.0
+
+  fb-watchman@2.0.2:
+    dependencies:
   fastq@1.19.1:
     dependencies:
       reusify: 1.1.0
@@ -7370,6 +7416,14 @@ snapshots:
 
   immer@10.2.0: {}
 
+  human-signals@2.1.0: {}
+
+  ignore@5.3.2: {}
+
+  ignore@7.0.5: {}
+
+  immer@10.2.0: {}
+
   import-fresh@3.3.1:
     dependencies:
       parent-module: 1.0.1
@@ -7475,6 +7529,10 @@ snapshots:
 
   is-negative-zero@2.0.3: {}
 
+  is-map@2.0.3: {}
+
+  is-negative-zero@2.0.3: {}
+
   is-number-object@1.1.1:
     dependencies:
       call-bound: 1.0.4
@@ -7515,6 +7573,8 @@ snapshots:
   is-unicode-supported@1.3.0: {}
 
   is-unicode-supported@2.1.0: {}
+
+  is-weakmap@2.0.2: {}
 
   is-weakmap@2.0.2: {}
 
@@ -7745,6 +7805,9 @@ snapshots:
 
   jest-regex-util@30.0.1: {}
 
+
+  jest-regex-util@30.0.1: {}
+
   jest-resolve-dependencies@30.2.0:
     dependencies:
       jest-regex-util: 30.0.1
@@ -7901,6 +7964,12 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
+  jiti@2.6.1: {}
+
+  jose@6.1.0: {}
+
+  js-tokens@4.0.0: {}
+
   js-yaml@3.14.1:
     dependencies:
       argparse: 1.0.10
@@ -7941,11 +8010,15 @@ snapshots:
 
   language-subtag-registry@0.3.23: {}
 
+  language-subtag-registry@0.3.23: {}
+
   language-tags@1.0.9:
     dependencies:
       language-subtag-registry: 0.3.23
 
   leac@0.6.0: {}
+
+  leven@3.1.0: {}
 
   leven@3.1.0: {}
 
@@ -8065,6 +8138,12 @@ snapshots:
 
   merge2@1.4.1: {}
 
+  math-intrinsics@1.1.0: {}
+
+  merge-stream@2.0.0: {}
+
+  merge2@1.4.1: {}
+
   micromatch@4.0.8:
     dependencies:
       braces: 3.0.3
@@ -8090,6 +8169,8 @@ snapshots:
     dependencies:
       '@isaacs/brace-expansion': 5.0.0
 
+  mimic-fn@2.1.0: {}
+
   minimatch@3.1.2:
     dependencies:
       brace-expansion: 1.1.12
@@ -8111,6 +8192,32 @@ snapshots:
   natural-compare@1.4.0: {}
 
   negotiator@0.6.3: {}
+
+  neo-async@2.6.2: {}
+
+  next-auth@5.0.0-beta.29(next@15.5.6(@babel/core@7.28.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0):
+    dependencies:
+      '@auth/core': 0.40.0
+      next: 15.5.6(@babel/core@7.28.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+
+  next-themes@0.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
+
+  minimist@1.2.8: {}
+
+  minipass@7.1.2: {}
+
+  ms@2.1.3: {}
+
+  nanoid@3.3.11: {}
+
+  napi-postinstall@0.3.4: {}
+
+  natural-compare@1.4.0: {}
 
   neo-async@2.6.2: {}
 
@@ -8307,6 +8414,14 @@ snapshots:
 
   path-parse@1.0.7: {}
 
+  path-exists@4.0.0: {}
+
+  path-is-absolute@1.0.1: {}
+
+  path-key@3.1.1: {}
+
+  path-parse@1.0.7: {}
+
   path-scurry@1.11.1:
     dependencies:
       lru-cache: 10.4.3
@@ -8320,6 +8435,14 @@ snapshots:
   pathe@2.0.3: {}
 
   peberminta@0.9.0: {}
+
+  perfect-debounce@1.0.0: {}
+
+  pg-int8@1.0.1: {}
+
+  pg-protocol@1.10.3: {}
+
+  pathe@2.0.3: {}
 
   perfect-debounce@1.0.0: {}
 
@@ -8413,6 +8536,8 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
+  promise-polyfill@8.3.0: {}
+
   prop-types@15.8.1:
     dependencies:
       loose-envify: 1.4.0
@@ -8425,6 +8550,10 @@ snapshots:
 
   pure-rand@7.0.1: {}
 
+  qs@6.14.0:
+    dependencies:
+      side-channel: 1.1.0
+
   query-string@9.3.1:
     dependencies:
       decode-uri-component: 0.4.1
@@ -8432,6 +8561,8 @@ snapshots:
       split-on-first: 3.0.0
 
   querystringify@2.2.0: {}
+
+  queue-microtask@1.2.3: {}
 
   queue-microtask@1.2.3: {}
 
@@ -8578,6 +8709,8 @@ snapshots:
     optionalDependencies:
       '@react-email/render': 1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
+  reselect@5.1.1: {}
+
   resolve-cwd@3.0.0:
     dependencies:
       resolve-from: 5.0.0
@@ -8604,6 +8737,8 @@ snapshots:
     dependencies:
       onetime: 7.0.0
       signal-exit: 4.1.0
+
+  reusify@1.1.0: {}
 
   reusify@1.1.0: {}
 
@@ -8635,6 +8770,10 @@ snapshots:
   selderee@0.11.0:
     dependencies:
       parseley: 0.12.1
+
+  semver@6.3.1: {}
+
+  semver@7.7.3: {}
 
   semver@6.3.1: {}
 
@@ -8695,6 +8834,9 @@ snapshots:
   shebang-command@2.0.0:
     dependencies:
       shebang-regex: 3.0.0
+
+  shebang-regex@3.0.0: {}
+
 
   shebang-regex@3.0.0: {}
 
@@ -8763,6 +8905,10 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  source-map-js@1.2.1: {}
+
+  slash@3.0.0: {}
 
   source-map-js@1.2.1: {}
 
@@ -8879,6 +9025,12 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
+  stripe@19.2.0(@types/node@20.19.23):
+    dependencies:
+      qs: 6.14.0
+    optionalDependencies:
+      '@types/node': 20.19.23
+
   styled-jsx@5.1.6(@babel/core@7.28.5)(react@19.1.0):
     dependencies:
       client-only: 0.0.1
@@ -8924,6 +9076,8 @@ snapshots:
   tiny-invariant@1.3.3: {}
 
   tinyexec@0.3.2: {}
+
+  tinyexec@1.0.1: {}
 
   tinyexec@1.0.1: {}
 
@@ -8992,6 +9146,10 @@ snapshots:
       json5: 2.2.3
       minimist: 1.2.8
       strip-bom: 3.0.0
+
+  tslib@2.8.1: {}
+
+  tw-animate-css@1.4.0: {}
 
   tslib@2.8.1: {}
 
@@ -9116,6 +9274,8 @@ snapshots:
 
   v8-compile-cache-lib@3.0.1: {}
 
+  v8-compile-cache-lib@3.0.1: {}
+
   v8-to-istanbul@9.3.0:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -9225,6 +9385,18 @@ snapshots:
   ws@8.17.1(bufferutil@4.0.9):
     optionalDependencies:
       bufferutil: 4.0.9
+
+  ws@8.18.3(bufferutil@4.0.9):
+    optionalDependencies:
+      bufferutil: 4.0.9
+
+  xtend@4.0.2: {}
+
+  y18n@5.0.8: {}
+
+  yallist@3.1.1: {}
+
+  yargs-parser@21.1.1: {}
 
   ws@8.18.3(bufferutil@4.0.9):
     optionalDependencies:
