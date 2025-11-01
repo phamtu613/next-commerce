@@ -477,3 +477,19 @@ export async function deliverOrder(orderId: string) {
     return { success: false, message: formatError(err) };
   }
 }
+export async function updateOrderPaymentStatus(orderId: string, update: {
+  isPaid: boolean;
+  paidAt: string;
+  paymentMethod: string;
+  paymentResult: { id: string; status: string; email_address?: string };
+}) {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: {
+      isPaid: update.isPaid,
+      paidAt: update.paidAt,
+      paymentMethod: update.paymentMethod,
+      paymentResult: update.paymentResult,
+    },
+  });
+}
