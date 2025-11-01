@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import UpdateUserForm from "./update-user-form";
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 
 export const metadata: Metadata = {
   title: "Update user",

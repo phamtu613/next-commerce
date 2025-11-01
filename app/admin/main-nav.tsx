@@ -4,7 +4,7 @@ import { ROUTES } from "@/lib/constants/routes";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+export const dynamic = "force-dynamic"
 const links = [
   {
     title: "Overview",

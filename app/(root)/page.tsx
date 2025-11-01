@@ -6,7 +6,7 @@ import {
   getFeaturedProducts,
   getLatestProducts,
 } from "@/lib/actions/product.actions";
-
+export const dynamic = "force-dynamic"
 const HomePage = async () => {
   const latestProducts = await getLatestProducts();
   const featuredProducts = await getFeaturedProducts();
