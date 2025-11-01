@@ -1,0 +1,140 @@
+import { hashSync } from "bcrypt-ts-edge";
+
+const sampleData = {
+  users: [
+    {
+      name: "John",
+      email: "admin@example.com",
+      password: hashSync("123456", 10),
+      role: "admin",
+    },
+    {
+      name: "Jane",
+      email: "jane@example.com",
+      password: hashSync("123456", 10),
+      role: "user",
+    },
+    {
+      name: "Thanh Tuấn",
+      email: "lynguyenthanhtuan@gmail.com",
+      password: hashSync("Thanhtuan@123", 10),
+      role: "user",
+      address:"228 Ton Thất Thuyết, Phường 04, Quận 04, TP.HCM"
+    },
+    {
+      name: "Test02",
+      email: "test02@gmail.com",
+      password: hashSync("Thanhtuan@123", 10),
+      role: "user",
+      address:"228 Ton Thất Thuyết, Phường 04, Quận 04, TP.HCM"
+    }
+  ],
+
+  products: [
+    {
+      name: "Yamaha F310",
+      slug: "yamaha-f310",
+      category: "Acoustic Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem11.jpg"],
+      brand: "Yamaha",
+      description: "Acoustic guitar",
+      stock: 10,
+      price: 299.99,
+    },
+    {
+      name: "Fender Stratocaster",
+      slug: "fender-stratocaster",
+      category: "Electric Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem12.jpg"],
+      brand: "Fender",
+      description: "Electric guitar",
+      stock: 5,
+      price: 899.99,
+    },
+    {
+      name: "Gibson Les Paul",
+      slug: "gibson-les-paul",
+      category: "Electric Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem13.jpg"],
+      brand: "Gibson",
+      description: "Electric guitar",
+      stock: 3,
+      price: 1999.99,
+    },
+    {
+      name: "Ibanez RG",
+      slug: "ibanez-rg",
+      category: "Electric Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem14.jpg"],
+      brand: "Ibanez",
+      description: "Electric guitar",
+      stock: 8,
+      price: 599.99,
+    },
+    {
+      name: "Martin D-28",
+      slug: "martin-d28",
+      category: "Acoustic Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem15.jpg"],
+      brand: "Martin",
+      description: "Acoustic guitar",
+      stock: 2,
+      price: 2999.99,
+    },
+    {
+      name: "Taylor 214ce",
+      slug: "taylor-214ce",
+      category: "Acoustic Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem16.jpg"],
+      brand: "Taylor",
+      description: "Acoustic guitar",
+      stock: 4,
+      price: 1299.99,
+    },
+    {
+      name: "Epiphone Les Paul",
+      slug: "epiphone-les-paul",
+      category: "Electric Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem17.jpg"],
+      brand: "Epiphone",
+      description: "Electric guitar",
+      stock: 12,
+      price: 399.99,
+    },
+    {
+      name: "PRS SE Custom 24",
+      slug: "prs-se-custom24",
+      category: "Electric Guitar",
+      images: ["https://salempiano.vn/wp-content/uploads/2020/02/salem6.jpg"],
+      brand: "PRS",
+      description: "Electric guitar",
+      stock: 6,
+      price: 799.99,
+    },
+    {
+      name: "Gretsch G2622",
+      slug: "gretsch-g2622",
+      category: "Electric Guitar",
+      images: [
+        "https://salempiano.vn/wp-content/uploads/2024/06/z5563579209042_f0ecff1c9655cdeb6a52ed6b7c5dd03b-300x300.jpg",
+      ],
+      brand: "Gretsch",
+      description: "Electric guitar",
+      stock: 7,
+      price: 549.99,
+    },
+    {
+      name: "Squier Bullet",
+      slug: "squier-bullet",
+      category: "Electric Guitar",
+      images: [
+        "https://salempiano.vn/wp-content/uploads/2020/02/z5563579200783_3b6367cf400d478850045738e2b1f4f8-280x280.jpg",
+      ],
+      brand: "Squier",
+      description: "Electric guitar",
+      stock: 15,
+      price: 199.99,
+    },
+  ],
+};
+export default sampleData;
