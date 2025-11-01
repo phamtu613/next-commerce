@@ -27,7 +27,7 @@ const OrderDetailsTable = ({
   paypalClientId,
   isAdmin,
 }: {
-  order: Order;
+  order: Omit<Order, 'paymentResult'>
   paypalClientId: string;
   isAdmin: boolean;
 }) => {
@@ -172,7 +172,7 @@ const OrderDetailsTable = ({
   );
 };
 
-const MarkAsPaidButton = ({ order }: { order: Order }) => {
+const MarkAsPaidButton = ({ order }: { order: Omit<Order, 'paymentResult'> }) => {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   return (
