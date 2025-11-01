@@ -38,8 +38,9 @@ function PrintLoadingState() {
 export default function PlaceOrderClient({ user, cart }: any) {
   const router = useRouter();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [isOrderCreated, setIsOrderCreated] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-
+  const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
   const canPlaceOrder = () => {
     if (!user.address) {
       return {
@@ -114,59 +115,43 @@ export default function PlaceOrderClient({ user, cart }: any) {
     }
   };
 
-  const handleCreatePayPalOrder = async () => {
+  const handleCreatePayPalOrder: any = async (data?: any, actions?: any): Promise<string> => {
+    if (!cart || cart.items.length === 0) {
+      throw new Error("Your cart is empty");
+    }
+
+    // Nếu đã tạo PayPal order trước đó, trả luôn
+    if (paypalOrderId) {
+      return paypalOrderId;
+    }
+
+    setIsCreatingOrder(true);
+
     try {
-      console.log("🔵 Step 1: Validating order conditions...");
-
-      const check = canPlaceOrder();
-      if (!check.valid) {
-        toast({
-          description: check.message,
-          variant: "destructive",
-        });
-        throw new Error(check.message);
-      }
-
-      console.log("🔵 Step 2: Creating order in database...");
-
       const orderResult = await createOrder();
 
-      console.log("🔵 Order result:", orderResult);
-
       if (!orderResult.success) {
-        toast({
-          description: orderResult.message,
-          variant: "destructive",
-        });
-        throw new Error(orderResult.message);
+        throw new Error(orderResult.message || "Failed to create order");
       }
 
+      setIsOrderCreated(true);
       const createdOrderId = orderResult.redirectTo?.split("/").pop();
+      setOrderId(createdOrderId || null);
 
       if (!createdOrderId) {
-        throw new Error("Failed to get order ID");
+        throw new Error("Failed to determine order ID for PayPal payment.");
       }
 
-      console.log("🔵 Step 3: Order created with ID:", createdOrderId);
-      console.log("🔵 Step 4: Creating PayPal order...");
-      console.log("🔵 Cart total price:", cart.totalPrice);
+      const payPalId = await createPayPalOrder(createdOrderId, cart.totalPrice);
+      if (!payPalId) throw new Error("Failed to create PayPal order");
 
-      const paypalOrderId = await createPayPalOrder(
-        createdOrderId,
-        cart.totalPrice
-      );
-
-      console.log("✅ PayPal order created:", paypalOrderId);
-
-      setOrderId(createdOrderId);
-
-      return paypalOrderId;
-    } catch (error) {
-      console.error("❌ Error in handleCreatePayPalOrder:", error);
-
-      throw error;
+      setPaypalOrderId(payPalId); // lưu lại để tránh tạo lại
+      return payPalId;
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
+
 
   const handleApprovePayPalOrder = async (data: { orderID: string }) => {
     try {
