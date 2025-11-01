@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: true,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // cho phép build mặc dù có lỗi TS
   },
   images: {
     remotePatterns: [
@@ -10,7 +11,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "salempiano.vn",
         port: "",
-        pathname: "/wp-content/uploads/**",
+        pathname: "/wp-content/uploads/**", // tất cả hình trong thư mục uploads
       },
     ],
   },
