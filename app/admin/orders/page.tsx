@@ -15,6 +15,7 @@ import { ROUTES, createOrderUrl } from "@/lib/constants/routes";
 import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
 import { Metadata } from "next";
 import Link from "next/link";
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 
 export const metadata: Metadata = {
   title: "Admin Orders",

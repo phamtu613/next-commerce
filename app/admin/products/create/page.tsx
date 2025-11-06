@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import ProductForm from "../product-form";
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 
 export const metadata: Metadata = {
   title: "Create Product",

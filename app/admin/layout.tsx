@@ -5,7 +5,7 @@ import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
 import { Suspense } from "react";
 import MainNav from "./main-nav";
-
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 export default async function AdminLayout({
   children,
 }: {

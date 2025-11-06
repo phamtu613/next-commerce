@@ -15,6 +15,7 @@ import { BadgeDollarSign, Barcode, CreditCard, Users } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Charts from "./charts";
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",

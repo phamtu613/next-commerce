@@ -16,6 +16,7 @@ import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
 import { Product } from "@/types";
 import { Metadata } from "next";
 import Link from "next/link";
+export const dynamic = "force-dynamic"; // Next.js 13+ App Router
 
 export const metadata: Metadata = {
   title: "Admin Products",
