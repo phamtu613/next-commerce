@@ -30,7 +30,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, orderId: order.id });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ success: false, message });
   }
 }

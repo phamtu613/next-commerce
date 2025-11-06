@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
     const { amount, orderId } = await req.json();
 
     if (!amount || !orderId) {
-      return NextResponse.json({ error: "Missing amount or orderId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing amount or orderId" },
+        { status: 400 }
+      );
     }
 
     // Tạo Payment Intent
@@ -23,8 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Stripe PaymentIntent error:", err);
-    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+    const message =
+      err instanceof Error ? err.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

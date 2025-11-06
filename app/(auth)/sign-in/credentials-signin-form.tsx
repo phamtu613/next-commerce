@@ -6,7 +6,7 @@ import { signInWithCredentials } from "@/lib/actions/user.actions";
 import { signInDefaultValues } from "@/lib/constants";
 import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -17,7 +17,6 @@ const CredentialsSignInForm = () => {
   });
 
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || ROUTES.HOME;
 
   useEffect(() => {

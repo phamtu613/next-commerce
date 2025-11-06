@@ -13,6 +13,7 @@ import { deleteProduct, getAdminProducts } from "@/lib/actions/product.actions";
 import { requireAdmin } from "@/lib/auth-guard";
 import { ROUTES } from "@/lib/constants/routes";
 import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
+import { Product } from "@/types";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -66,7 +67,7 @@ const ProductsPage = async (props: {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.data.map((p: any) => (
+            {products.data.map((p: Product) => (
               <TableRow key={p.id}>
                 <TableCell>{formatId(p.id)}</TableCell>
                 <TableCell>{p.name}</TableCell>

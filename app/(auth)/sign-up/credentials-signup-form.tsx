@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { signUp } from "@/lib/actions/user.actions";
 import { signUpDefaultValues } from "@/lib/constants";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -16,7 +16,6 @@ const CredentialsSignUpForm = () => {
   });
 
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {

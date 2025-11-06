@@ -3,6 +3,7 @@ import UserButton from "@/components/shared/user-button";
 import { APP_NAME } from "@/lib/constants";
 import { ROUTES } from "@/lib/constants/routes";
 import Link from "next/link";
+import { Suspense } from "react";
 import MainNav from "./main-nav";
 
 export default async function AdminLayout({
@@ -21,7 +22,9 @@ export default async function AdminLayout({
               </span>
             </Link>
             <div className="ml-auto flex items-center space-x-4">
-              <AdminSearch />
+              <Suspense fallback={<div className="w-[300px]" />}>
+                <AdminSearch />
+              </Suspense>
               <MainNav className="mx-6" />
               <UserButton />
             </div>

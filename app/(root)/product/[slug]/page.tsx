@@ -6,6 +6,7 @@ import Rating from "@/components/shared/product/rating";
 import { Badge } from "@/components/ui/badge";
 import { getMyCart } from "@/lib/actions/cart.actions";
 import { getProductBySlug } from "@/lib/actions/product.actions";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReviewList from "./review-list";
 
@@ -34,13 +35,13 @@ const ProductDetailsPage = async (props: {
 
         <div className="space-y-8">
           <nav className="flex items-center space-x-2 text-sm text-gray-500">
-            <a href="/" className="hover:text-gray-700">
+            <Link href="/" className="hover:text-gray-700">
               Home
-            </a>
+            </Link>
             <span>/</span>
-            <a href="/" className="hover:text-gray-700">
+            <Link href="/" className="hover:text-gray-700">
               {product.category}
-            </a>
+            </Link>
             <span>/</span>
             <span className="text-gray-900">{product.name}</span>
           </nav>
