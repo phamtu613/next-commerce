@@ -25,10 +25,28 @@ const calcPrice = (items: z.infer<typeof cartItemSchema>[]) => {
   };
 };
 
+// Helper function để tạo hoặc lấy sessionCartId
+async function getOrCreateSessionCartId(): Promise<string> {
+  const cookieStore = await cookies();
+  let sessionCartId = cookieStore.get("sessionCartId")?.value;
+  
+  if (!sessionCartId) {
+    sessionCartId = crypto.randomUUID();
+    cookieStore.set("sessionCartId", sessionCartId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
+  }
+  
+  return sessionCartId;
+}
+
 export async function addItemToCart(data: CartItem) {
   try {
-    const sessionCartId = (await cookies()).get("sessionCartId")?.value;
-    if (!sessionCartId) throw new Error("Cart Session not found");
+    const sessionCartId = await getOrCreateSessionCartId();
 
     const session = await auth();
     const userId = session?.user?.id ? (session.user.id as string) : undefined;
@@ -98,8 +116,7 @@ export async function addItemToCart(data: CartItem) {
 
 export async function removeItemFromCart(productId: string) {
   try {
-    const sessionCartId = (await cookies()).get("sessionCartId")?.value;
-    if (!sessionCartId) throw new Error("Cart Session not found");
+    const sessionCartId = await getOrCreateSessionCartId();
 
     const product = await prisma.product.findFirst({
       where: { id: productId },
@@ -147,24 +164,37 @@ export async function removeItemFromCart(productId: string) {
 }
 
 export async function getMyCart() {
-  const sessionCartId = (await cookies()).get("sessionCartId")?.value;
-  if (!sessionCartId) return undefined;
+  try {
+    const sessionCartId = await getOrCreateSessionCartId();
 
-  const session = await auth();
-  const userId = session?.user?.id ? (session.user.id as string) : undefined;
+    const session = await auth();
+    const userId = session?.user?.id ? (session.user.id as string) : undefined;
 
-  const cart = await prisma.cart.findFirst({
-    where: userId ? { userId: userId } : { sessionCartId: sessionCartId },
-  });
+    const cart = await prisma.cart.findFirst({
+      where: userId ? { userId: userId } : { sessionCartId: sessionCartId },
+    });
 
-  if (!cart) return undefined;
+    if (!cart) return null;
 
-  return convertToPlainObject({
-    ...cart,
-    items: cart.items as CartItem[],
-    itemsPrice: cart.itemsPrice.toString(),
-    totalPrice: cart.totalPrice.toString(),
-    shippingPrice: cart.shippingPrice.toString(),
-    taxPrice: cart.taxPrice.toString(),
-  });
+    return convertToPlainObject({
+      ...cart,
+      items: cart.items as CartItem[],
+      itemsPrice: cart.itemsPrice.toString(),
+      totalPrice: cart.totalPrice.toString(),
+      shippingPrice: cart.shippingPrice.toString(),
+      taxPrice: cart.taxPrice.toString(),
+    });
+  } catch (error) {
+    console.error("Error in getMyCart:", error);
+    return null;
+  }
+}
+
+export async function getMyCartSafe() {
+  try {
+    return await getMyCart();
+  } catch (error) {
+    console.error("Cart error:", error);
+    return null;
+  }
 }
