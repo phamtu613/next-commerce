@@ -18,7 +18,7 @@ const OrderDetailsTable = ({
   paypalClientId,
   stripeClientSecret,
 }: {
-  order: Order;
+  order: Omit<Order, 'paymentResult'>
   paypalClientId: string;
   stripeClientSecret?: string | null;
 }) => {
@@ -37,12 +37,21 @@ const OrderDetailsTable = ({
       console.log("🔵 Order ID:", order.id);
       console.log("🔵 Total Price:", order.totalPrice);
 
-      const paypalOrderId = await createPayPalOrder(order.id, order.totalPrice);
-
-      console.log("✅ PayPal order created:", paypalOrderId);
-
-      if (!paypalOrderId || typeof paypalOrderId !== "string") {
-        throw new Error("Invalid PayPal order ID received");
+const MarkAsPaidButton = ({ order }: { order: Omit<Order, 'paymentResult'> }) => {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+  return (
+    <Button
+      type="button"
+      disabled={isPending}
+      onClick={() =>
+        startTransition(async () => {
+          const res = await updateOrderToPaidByCOD(order.id);
+          toast({
+            variant: res.success ? "default" : "destructive",
+            description: res.message,
+          });
+        })
       }
 
       return paypalOrderId;

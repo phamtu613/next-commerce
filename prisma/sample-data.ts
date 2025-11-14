@@ -1,3 +1,4 @@
+import PurchaseReceiptEmail from "@/email/purchase-receipt";
 import { hashSync } from "bcrypt-ts-edge";
 
 const sampleData = {
@@ -130,4 +131,5 @@ const sampleData = {
     },
   ],
 };
+
 export default sampleData;

@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { CartItem, PaymentResult } from "@/types";
-import { Prisma } from "@prisma/client";
+import { Order, Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
@@ -381,13 +381,14 @@ export async function approvePayPalOrder(
   }
 }
 
-async function updateOrderToPaid({
+export async function updateOrderToPaid({
   orderId,
   paymentResult,
 }: {
   orderId: string;
   paymentResult?: PaymentResult;
-}) {
+}): Promise<Order> {
+  // Lấy order hiện tại
   const order = await prisma.order.findFirst({
     where: { id: orderId },
     include: { orderItems: true },
@@ -396,6 +397,7 @@ async function updateOrderToPaid({
   if (!order) throw new Error("Order not found");
   if (order.isPaid) throw new Error("Order is already paid");
 
+  // Transaction: cập nhật stock và order
   await prisma.$transaction(async (tx) => {
     for (const item of order.orderItems) {
       await tx.product.update({
@@ -414,6 +416,7 @@ async function updateOrderToPaid({
     });
   });
 
+  // Lấy lại order đã được cập nhật, bao gồm user info
   const updatedOrder = await prisma.order.findFirst({
     where: { id: orderId },
     include: {
@@ -423,6 +426,7 @@ async function updateOrderToPaid({
   });
 
   if (!updatedOrder) throw new Error("Order not found");
+
   return updatedOrder;
 }
 

@@ -17,7 +17,8 @@
     "db:migrate:reset": "prisma migrate reset",
     "db:fix-drift": "bash prisma/fix-prisma-drift.sh",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "email": "cp .env ./node_modules/react-email && email dev --dir email --port 3001"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -32,8 +33,7 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.15",
-    "@stripe/react-stripe-js": "^5.3.0",
-    "@stripe/stripe-js": "^8.2.0",
+    "@react-email/components": "^0.5.7",
     "bcrypt-ts-edge": "^3.0.1",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -48,9 +48,10 @@
     "query-string": "^9.3.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-email": "^4.3.2",
     "react-hook-form": "^7.65.0",
     "recharts": "^3.3.0",
-    "stripe": "^19.2.0",
+    "resend": "^6.4.0",
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",
     "ws": "^8.18.3",
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@prisma/client": "^6.17.1",
+    "@react-email/preview-server": "^4.3.2",
     "@tailwindcss/postcss": "^4",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
